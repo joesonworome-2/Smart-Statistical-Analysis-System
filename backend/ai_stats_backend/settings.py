@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
-from mongoengine import connect
 
 # --------------------------------------------------
 # Base Directory
@@ -20,15 +19,60 @@ from mongoengine import connect
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+def _load_env_file(path):
+    if not path.exists():
+        return
+
+    for raw_line in path.read_text().splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        os.environ.setdefault(key, value)
+
+
+def _env_bool(name, default):
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _env_int(name, default):
+    try:
+        return int(os.environ.get(name, default))
+    except (TypeError, ValueError):
+        return default
+
+
+def _env_list(name, default):
+    value = os.environ.get(name)
+    if not value:
+        return default
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
+_load_env_file(BASE_DIR / ".env")
+
 # --------------------------------------------------
 # Security
 # --------------------------------------------------
 
-SECRET_KEY = "django-insecure-gk)s$jq@qez4rdtsl#j!xs%6510$#v--bd(xfo1dwb&-&h6157"
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-local-development-key-change-me",
+)
 
-DEBUG = True
+DEBUG = _env_bool("DJANGO_DEBUG", True)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = _env_list(
+    "DJANGO_ALLOWED_HOSTS",
+    ["localhost", "127.0.0.1", "testserver"] if DEBUG else [],
+)
 
 # --------------------------------------------------
 # Installed Apps
@@ -107,21 +151,18 @@ DATABASES = {
 }
 
 # --------------------------------------------------
-# MongoDB Atlas Configuration
+# MongoDB Configuration
 # --------------------------------------------------
 
-MONGODB_NAME = "ai_stats_system"
-
-MONGODB_URI = (
-    "mongodb+srv://joeson:sxodNYfy2WJSo6J0@cluster0.spwvg01.mongodb.net/"
-    "ai_stats_system?retryWrites=true&w=majority&appName=Cluster0"
+MONGODB_NAME = os.environ.get("MONGODB_NAME", "ai_stats_system")
+MONGODB_ALIAS = os.environ.get("MONGODB_ALIAS", "default")
+MONGODB_URI = os.environ.get(
+    "MONGODB_URI",
+    f"mongodb://localhost:27017/{MONGODB_NAME}",
 )
-
-connect(
-    db=MONGODB_NAME,
-    host=MONGODB_URI,
-    alias=MONGODB_ALIAS,
-    uuidRepresentation="standard",
+MONGODB_SERVER_SELECTION_TIMEOUT_MS = _env_int(
+    "MONGODB_SERVER_SELECTION_TIMEOUT_MS",
+    5000,
 )
 # --------------------------------------------------
 # Password Validation

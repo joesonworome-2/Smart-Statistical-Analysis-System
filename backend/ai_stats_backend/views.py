@@ -1,5 +1,7 @@
 import io
+import importlib.util
 import json
+from datetime import date, datetime
 from pathlib import Path
 
 import numpy as np
@@ -11,19 +13,72 @@ from sklearn.metrics import (accuracy_score, f1_score, mean_squared_error, preci
                              recall_score, r2_score)
 from sklearn.model_selection import train_test_split
 from django.conf import settings
-from mongoengine.connection import get_db
+from mongoengine import connect
+from mongoengine.connection import ConnectionFailure, get_connection, get_db
 from pymongo.errors import PyMongoError
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 
+def _get_mongodb():
+    try:
+        get_connection(alias=settings.MONGODB_ALIAS)
+    except ConnectionFailure:
+        connect(
+            db=settings.MONGODB_NAME,
+            host=settings.MONGODB_URI,
+            alias=settings.MONGODB_ALIAS,
+            uuidRepresentation="standard",
+            serverSelectionTimeoutMS=settings.MONGODB_SERVER_SELECTION_TIMEOUT_MS,
+        )
+
+    return get_db(alias=settings.MONGODB_ALIAS)
+
+
+def _root_mean_squared_error(y_true, y_pred):
+    return float(np.sqrt(mean_squared_error(y_true, y_pred)))
+
+
+def _require_optional_dependency(module_name, file_type):
+    if importlib.util.find_spec(module_name) is None:
+        raise ValueError(
+            f"{file_type} files require the optional dependency '{module_name}'. "
+            "Install the backend requirements and try again."
+        )
+
+
+def _json_safe(value):
+    if isinstance(value, dict):
+        return {str(key): _json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(item) for item in value]
+    if isinstance(value, (datetime, date, pd.Timestamp)):
+        return value.isoformat()
+    if isinstance(value, np.bool_):
+        return bool(value)
+    if isinstance(value, np.integer):
+        return int(value)
+    if isinstance(value, np.floating):
+        value = float(value)
+    if isinstance(value, float):
+        return value if np.isfinite(value) else None
+
+    try:
+        if pd.isna(value):
+            return None
+    except (TypeError, ValueError):
+        pass
+
+    return value
+
+
 @api_view(["GET"])
 def health_check(request):
     try:
-        db = get_db(alias=settings.MONGODB_ALIAS)
+        db = _get_mongodb()
         db.command("ping")
-    except PyMongoError as exc:
+    except (ConnectionFailure, PyMongoError, OSError) as exc:
         return Response(
             {
                 "status": "error",
@@ -57,11 +112,15 @@ def _load_uploaded_dataset(uploaded_file):
         return pd.read_csv(file_buffer, engine="python")
     if extension == ".tsv":
         return pd.read_csv(file_buffer, sep="\t", engine="python")
-    if extension in {".xls", ".xlsx"}:
+    if extension == ".xls":
+        _require_optional_dependency("xlrd", "Excel .xls")
+        return pd.read_excel(file_buffer)
+    if extension == ".xlsx":
         return pd.read_excel(file_buffer)
     if extension == ".json":
         return pd.read_json(file_buffer)
     if extension == ".parquet":
+        _require_optional_dependency("pyarrow", "Parquet")
         return pd.read_parquet(file_buffer)
     if extension in {".html", ".htm"}:
         tables = pd.read_html(file_buffer)
@@ -71,12 +130,14 @@ def _load_uploaded_dataset(uploaded_file):
     if extension == ".xml":
         return pd.read_xml(file_buffer)
     if extension == ".feather":
+        _require_optional_dependency("pyarrow", "Feather")
         return pd.read_feather(file_buffer)
     if extension == ".sas7bdat":
         return pd.read_sas(file_buffer)
     if extension == ".dta":
         return pd.read_stata(file_buffer)
     if extension == ".sav":
+        _require_optional_dependency("pyreadstat", "SPSS .sav")
         return pd.read_spss(file_buffer)
 
     # Fallback: try common text-based formats first, then Excel.
@@ -124,7 +185,7 @@ def upload_dataset(request):
         "summary_statistics": dataframe.describe(include="all").to_dict(),
     }
 
-    return Response(result, status=status.HTTP_200_OK)
+    return Response(_json_safe(result), status=status.HTTP_200_OK)
 
 
 def _load_json_dataset(data):
@@ -263,7 +324,7 @@ def _regression_analysis(df, numeric_columns, target):
         {'title': 'Coefficients', 'body': ', '.join([f'{feat}:{round(coef,4)}' for feat, coef in zip(features, model.coef_)]), 'meta': ''},
         {'title': 'Intercept', 'body': round(model.intercept_, 4), 'meta': ''},
         {'title': 'R-squared', 'body': round(model.score(X, y), 4), 'meta': ''},
-        {'title': 'RMSE', 'body': round(mean_squared_error(y, predictions, squared=False), 4), 'meta': ''}
+        {'title': 'RMSE', 'body': round(_root_mean_squared_error(y, predictions), 4), 'meta': ''}
     ]
 
 
@@ -388,7 +449,7 @@ def _ml_regression_analysis(df, numeric_columns, target):
         preds = model.predict(X_test)
         results.append({
             'title': name,
-            'body': f'RMSE {round(mean_squared_error(y_test, preds, squared=False), 4)}, R2 {round(r2_score(y_test, preds), 4)}',
+            'body': f'RMSE {round(_root_mean_squared_error(y_test, preds), 4)}, R2 {round(r2_score(y_test, preds), 4)}',
             'meta': ''
         })
     return results
@@ -479,13 +540,13 @@ def _analysis_results(df, analysis_type, target, confidence):
 
 
 def _build_analysis_response(df, analysis_type, target, confidence):
-    return {
+    return _json_safe({
         'status': 'success',
         'analysis_type': analysis_type,
         'target': target,
         'confidence': confidence,
         'results': _analysis_results(df, analysis_type, target, confidence)
-    }
+    })
 
 
 @api_view(['POST'])

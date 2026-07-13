@@ -288,7 +288,7 @@
     }
 
     thead.innerHTML = '<tr>' + state.columns.map((column) => {
-      const sortIcon = state.sortColumn === column ? (state.sortDirection === 'asc' ? '↑' : '↓') : '';
+      const sortIcon = state.sortColumn === column ? (state.sortDirection === 'asc' ? '&uarr;' : '&darr;') : '';
       return '<th style="cursor:pointer;" data-sort="' + escapeHtml(column) + '">' + escapeHtml(column) + ' ' + sortIcon + '</th>';
     }).join('') + '</tr>';
     
@@ -304,7 +304,7 @@
   function renderActiveFilters() {
     const container = el('activeFilters');
     container.innerHTML = state.filters.map((filter, index) => {
-      return '<span class="filter-tag">' + escapeHtml(filter.column) + ' ' + escapeHtml(filter.operator) + ' ' + escapeHtml(filter.value) + ' <button data-filter-index="' + index + '">×</button></span>';
+      return '<span class="filter-tag">' + escapeHtml(filter.column) + ' ' + escapeHtml(filter.operator) + ' ' + escapeHtml(filter.value) + ' <button data-filter-index="' + index + '">&times;</button></span>';
     }).join('');
   }
 
@@ -402,8 +402,13 @@
     
     if (!column) return;
     
-    const values = state.rows.map(row => toNumber(row[column]));
-    const transformed = [];
+    const values = state.rows.map(row => toNumber(row[column])).filter(value => value !== null);
+    const needsNumericValues = type !== 'one_hot' && type !== 'label';
+
+    if (needsNumericValues && !values.length) {
+      window.alert('Select a column with numeric values before applying this transformation.');
+      return;
+    }
     
     switch (type) {
       case 'normalize_minmax':
@@ -417,11 +422,11 @@
         state.transforms.push({ column, type: 'Min-Max Normalization' });
         break;
       case 'normalize_zscore':
-        const mean = mean(values);
-        const std = Math.sqrt(values.reduce((sum, val) => sum + (val - mean) ** 2, 0) / values.length) || 1;
+        const meanValue = mean(values);
+        const std = Math.sqrt(values.reduce((sum, val) => sum + (val - meanValue) ** 2, 0) / values.length) || 1;
         state.rows.forEach(row => {
           const val = toNumber(row[column]);
-          row[column] = val !== null ? (val - mean) / std : '';
+          row[column] = val !== null ? (val - meanValue) / std : '';
         });
         state.transforms.push({ column, type: 'Z-Score Standardization' });
         break;
@@ -493,8 +498,8 @@
     if (!state.rows.length) {
       list.innerHTML = [
         insight('Dataset needed', 'Upload or load a sample dataset to populate findings.'),
-        insight('Supported input', 'CSV files are available in this frontend version.'),
-        insight('Backend status', 'The Django backend currently exposes admin only.')
+        insight('Supported input', 'CSV, TSV, Excel, and JSON files are available in this frontend version.'),
+        insight('Backend status', 'The Django backend exposes health, upload, and analysis endpoints.')
       ].join('');
       return;
     }
