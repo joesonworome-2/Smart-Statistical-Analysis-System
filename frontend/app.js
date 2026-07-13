@@ -35,6 +35,51 @@
   const el = (id) => document.getElementById(id);
   const fmt = new Intl.NumberFormat('en-US');
 
+  function showToast(message, type = 'info') {
+    const container = el('toastRegion');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = 'toast ' + type;
+    toast.textContent = message;
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => toast.classList.add('visible'));
+    window.setTimeout(() => {
+      toast.classList.remove('visible');
+      window.setTimeout(() => toast.remove(), 220);
+    }, 2600);
+  }
+
+  function updateHeroPanel() {
+    const status = el('workspaceStatus');
+    const mode = el('heroMode');
+    const readiness = el('heroReadiness');
+    const signal = el('heroSignal');
+    const copy = el('hero-copy');
+
+    if (!status || !mode || !readiness || !signal || !copy) return;
+
+    if (!state.rows.length) {
+      status.textContent = 'Ready for your next dataset';
+      status.className = 'status-pill neutral';
+      mode.textContent = 'Discovery';
+      readiness.textContent = 'Waiting for data';
+      signal.textContent = '0 useful columns';
+      copy.textContent = 'Upload a dataset, profile anomalies, refine features, and export polished analysis in minutes.';
+      return;
+    }
+
+    const score = qualityScore();
+    const scoreText = score === null ? 'Pending' : score + '%';
+    status.textContent = `${state.rows.length} rows • ${state.columns.length} columns`;
+    status.className = 'status-pill live';
+    mode.textContent = state.numericColumns.length ? 'Ready for modeling' : 'Profiling';
+    readiness.textContent = scoreText;
+    signal.textContent = `${state.numericColumns.length} numeric fields`;
+    copy.textContent = `${state.name || 'Loaded dataset'} is ready for deeper statistical review and export.`;
+  }
+
   function parseDelimitedText(text, delimiter = ',') {
     const rows = [];
     let current = '';
@@ -211,6 +256,7 @@
     el('tableSearch').value = '';
     renderAll();
     setView('dashboard');
+    showToast(`${name} loaded with ${rows.length} rows.`, 'success');
   }
 
   function clearDataset() {
@@ -221,6 +267,7 @@
     state.filteredRows = [];
     state.lastResults = [];
     renderAll();
+    showToast('Workspace cleared. Load a new dataset to continue.', 'info');
   }
 
   function missingStats() {
@@ -1168,6 +1215,8 @@
     renderSelects();
     renderTable();
     renderInsights();
+    updateHeroPanel();
+    renderAiRecommendations();
     renderResults(state.lastResults.length ? 'Complete' : 'Idle');
     renderReport();
     requestAnimationFrame(drawChart);
@@ -1570,9 +1619,83 @@
     setDataset(name, parsed.columns, parsed.rows);
   }
 
+  function handleQuickAnalysis() {
+    if (!state.rows.length) {
+      showToast('Load a dataset before running guided analysis.', 'warning');
+      setView('datasets');
+      return;
+    }
+
+    const topNumeric = state.numericColumns[0];
+    if (!topNumeric) {
+      showToast('Add at least one numeric column to run guided analysis.', 'warning');
+      return;
+    }
+
+    const values = getNumericValues(topNumeric);
+    const outliers = countOutliers(values);
+    state.lastResults = [
+      ...state.lastResults,
+      {
+        title: 'Guided analysis',
+        body: `${topNumeric} shows ${outliers} possible outliers across ${state.rows.length} records.`
+      }
+    ];
+
+    renderAll();
+    showToast('Guided analysis generated successfully.', 'success');
+  }
+
+  function renderAiRecommendations() {
+    const list = el('aiRecommendationList');
+    const explanation = el('aiInsights');
+
+    if (!list || !explanation) return;
+
+    if (!state.rows.length) {
+      list.innerHTML = '<div class="ai-recommendation-card"><strong>Upload a dataset first</strong><span>Once data is loaded, the assistant will suggest the best statistical methods and modeling approach.</span></div>';
+      explanation.innerHTML = '<li class="insight-list li"><strong>Waiting for data</strong><span>Bring in a dataset to unlock AI-driven analysis recommendations.</span></li>';
+      return;
+    }
+
+    const recommendations = [];
+    if (state.numericColumns.length >= 2) {
+      recommendations.push({ title: 'Correlation analysis', body: 'Strong numeric structure detected. Explore pairwise relationships and dependencies.' });
+    }
+    if (state.numericColumns.length >= 1) {
+      recommendations.push({ title: 'Regression modeling', body: 'A numeric target column is available. Consider regression to explain or predict outcomes.' });
+    }
+    if (state.columns.length >= 4) {
+      recommendations.push({ title: 'Feature engineering', body: 'The dataset has enough dimensionality for transformation and feature refinement.' });
+    }
+    if (!recommendations.length) {
+      recommendations.push({ title: 'Data profiling', body: 'Inspect the dataset structure and enrich the available columns before modeling.' });
+    }
+
+    list.innerHTML = recommendations.map((item) => `
+      <div class="ai-recommendation-card">
+        <strong>${escapeHtml(item.title)}</strong>
+        <span>${escapeHtml(item.body)}</span>
+      </div>
+    `).join('');
+
+    explanation.innerHTML = [
+      `<li><strong>Data shape</strong><span>${state.rows.length} rows and ${state.columns.length} columns detected.</span></li>`,
+      `<li><strong>Numeric readiness</strong><span>${state.numericColumns.length} numeric fields are available for modeling.</span></li>`,
+      `<li><strong>Suggested path</strong><span>Start with profiling, then use regression or correlation analysis depending on the target.</span></li>`
+    ].join('');
+  }
+
   function bindEvents() {
     document.querySelectorAll('[data-view]').forEach((button) => button.addEventListener('click', () => setView(button.dataset.view)));
     document.querySelectorAll('[data-view-target]').forEach((button) => button.addEventListener('click', () => setView(button.dataset.viewTarget)));
+    document.querySelectorAll('[data-method]').forEach((button) => button.addEventListener('click', () => {
+      const method = button.dataset.method;
+      const methodLabel = button.querySelector('strong')?.textContent || method;
+      showToast(`${methodLabel} selected for analysis.`, 'info');
+      el('analysisType').value = method === 'descriptive' ? 'descriptive' : method === 'correlation' ? 'correlation' : method === 'regression' ? 'regression' : method === 'hypothesis' ? 'hypothesis' : method === 'time_series' ? 'time_series' : 'classification';
+      setView('analysis');
+    }));
     el('chooseFile').addEventListener('click', () => el('datasetFile').click());
     el('datasetFile').addEventListener('change', (event) => {
       const file = event.target.files[0];
@@ -1582,6 +1705,11 @@
     el('loadSample').addEventListener('click', () => loadCsvText('sample-health-statistics.csv', sampleCsv));
     el('clearData').addEventListener('click', clearDataset);
     el('uploadToBackend').addEventListener('click', uploadToBackend);
+    el('quickAnalyze').addEventListener('click', handleQuickAnalysis);
+    el('refreshAiRecommendations').addEventListener('click', () => {
+      renderAiRecommendations();
+      showToast('AI recommendations refreshed.', 'success');
+    });
     el('chartType').addEventListener('change', () => {
       const type = el('chartType').value;
       el('chartColumn2').style.display = (type === 'scatter' || type === 'line') ? 'block' : 'none';

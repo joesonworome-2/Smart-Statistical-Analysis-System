@@ -20,17 +20,21 @@
         </div>
 
         <nav class="nav-list">
-          <button class="nav-item active" type="button" data-view="dashboard" aria-label="Dashboard" title="Dashboard">
+          <button class="nav-item active" type="button" data-view="dashboard" aria-label="Main dashboard" title="Main dashboard">
             <span aria-hidden="true">[]</span>
-            <span>Dashboard</span>
+            <span>Main Dashboard</span>
           </button>
-          <button class="nav-item" type="button" data-view="datasets" aria-label="Datasets" title="Datasets">
+          <button class="nav-item" type="button" data-view="datasets" aria-label="Upload dataset" title="Upload dataset">
             <span aria-hidden="true">^</span>
-            <span>Datasets</span>
+            <span>Upload Dataset</span>
           </button>
-          <button class="nav-item" type="button" data-view="analysis" aria-label="Analysis" title="Analysis">
+          <button class="nav-item" type="button" data-view="analysis" aria-label="Statistical methods" title="Statistical methods">
             <span aria-hidden="true">S</span>
-            <span>Analysis</span>
+            <span>Statistical Methods</span>
+          </button>
+          <button class="nav-item" type="button" data-view="ai" aria-label="AI recommender" title="AI recommender">
+            <span aria-hidden="true">AI</span>
+            <span>AI Recommender</span>
           </button>
           <button class="nav-item" type="button" data-view="reports" aria-label="Reports" title="Reports">
             <span aria-hidden="true">#</span>
@@ -47,10 +51,12 @@
       </aside>
 
       <main class="workspace">
+        <div id="toastRegion" class="toast-region" aria-live="polite"></div>
+
         <header class="topbar">
           <div>
             <p class="eyebrow">Workspace</p>
-            <h1>AI-Based Statistical Analysis System</h1>
+            <h1>Smart Statistical Analysis Studio</h1>
           </div>
           <div class="topbar-actions">
             <label class="search-field">
@@ -72,6 +78,62 @@
               Upload dataset
             </button>
           </div>
+
+          <section class="panel hero-panel" aria-labelledby="hero-title">
+            <div class="hero-copy">
+              <div class="pill-row">
+                <span id="workspaceStatus" class="status-pill neutral">Ready for your next dataset</span>
+                <span class="status-pill">World-class analytics workflow</span>
+              </div>
+              <h3 id="hero-title">Turn raw data into executive-ready insights.</h3>
+              <p id="hero-copy">Upload a dataset, profile anomalies, refine features, and export polished analysis in minutes.</p>
+              <div class="hero-actions">
+                <button class="primary-button" type="button" data-view-target="datasets">Import dataset</button>
+                <button class="secondary-button" id="quickAnalyze" type="button">Run guided analysis</button>
+              </div>
+            </div>
+            <div class="hero-metrics">
+              <div class="mini-metric">
+                <span>Workspace</span>
+                <strong id="heroMode">Discovery</strong>
+              </div>
+              <div class="mini-metric">
+                <span>Readiness</span>
+                <strong id="heroReadiness">Waiting for data</strong>
+              </div>
+              <div class="mini-metric">
+                <span>Signal</span>
+                <strong id="heroSignal">0 useful columns</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel quick-access-panel" aria-labelledby="quick-access-title">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Workflow</p>
+                <h3 id="quick-access-title">Quick access</h3>
+              </div>
+            </div>
+            <div class="quick-access-grid">
+              <button class="quick-access-card" type="button" data-view-target="datasets">
+                <strong>Upload dataset</strong>
+                <span>Bring in CSV, Excel, JSON, or text data.</span>
+              </button>
+              <button class="quick-access-card" type="button" data-view-target="analysis">
+                <strong>Statistical methods</strong>
+                <span>Explore descriptive, inferential, and predictive techniques.</span>
+              </button>
+              <button class="quick-access-card" type="button" data-view-target="ai">
+                <strong>AI recommender</strong>
+                <span>Get method suggestions tailored to your dataset.</span>
+              </button>
+              <button class="quick-access-card" type="button" data-view-target="reports">
+                <strong>Export report</strong>
+                <span>Share the current analysis as text, CSV, PDF, and more.</span>
+              </button>
+            </div>
+          </section>
 
           <div class="metrics-grid">
             <article class="metric-card">
@@ -234,7 +296,7 @@
           <div class="section-heading">
             <div>
               <p class="eyebrow">Statistical engine</p>
-              <h2 id="analysis-title">Analysis</h2>
+              <h2 id="analysis-title">Statistical Methods</h2>
             </div>
             <div class="analysis-actions">
               <button class="secondary-button" id="toggleTransforms" type="button">Transform Data</button>
@@ -244,6 +306,41 @@
               </button>
             </div>
           </div>
+
+          <section class="panel methods-panel" aria-labelledby="methods-title">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Toolbox</p>
+                <h3 id="methods-title">Available statistical methods</h3>
+              </div>
+            </div>
+            <div class="method-grid">
+              <button class="method-card" type="button" data-method="descriptive">
+                <strong>Descriptive statistics</strong>
+                <span>Summaries, distributions, and central tendencies.</span>
+              </button>
+              <button class="method-card" type="button" data-method="correlation">
+                <strong>Correlation analysis</strong>
+                <span>Measure relationships between numeric variables.</span>
+              </button>
+              <button class="method-card" type="button" data-method="regression">
+                <strong>Regression analysis</strong>
+                <span>Model trends and predict outcomes from your data.</span>
+              </button>
+              <button class="method-card" type="button" data-method="hypothesis">
+                <strong>Hypothesis testing</strong>
+                <span>Validate assumptions and compare groups reliably.</span>
+              </button>
+              <button class="method-card" type="button" data-method="time_series">
+                <strong>Time series</strong>
+                <span>Detect seasonality, trends, and signal changes.</span>
+              </button>
+              <button class="method-card" type="button" data-method="clustering">
+                <strong>Clustering</strong>
+                <span>Group similar observations for segmentation insights.</span>
+              </button>
+            </div>
+          </section>
 
           <div class="transform-panel" id="transformPanel" style="display:none;">
             <h4>Data Transformations</h4>
@@ -335,6 +432,37 @@
                 <button class="icon-button" id="clearHistory" type="button" aria-label="Clear history" title="Clear history">C</button>
               </div>
               <div class="history-list" id="analysisHistory"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="ai" aria-labelledby="ai-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Intelligence</p>
+              <h2 id="ai-title">AI Recommender</h2>
+            </div>
+            <button class="primary-button" id="refreshAiRecommendations" type="button">Refresh suggestions</button>
+          </div>
+
+          <div class="ai-grid">
+            <section class="panel ai-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Recommended next steps</p>
+                  <h3>Suggested methods</h3>
+                </div>
+              </div>
+              <div class="ai-recommendation-list" id="aiRecommendationList"></div>
+            </section>
+            <section class="panel ai-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Guidance</p>
+                  <h3>How the assistant thinks</h3>
+                </div>
+              </div>
+              <ul class="insight-list" id="aiInsights"></ul>
             </section>
           </div>
         </section>

@@ -1,6 +1,7 @@
-import io
 import importlib.util
+import io
 import json
+import mimetypes
 from datetime import date, datetime
 from pathlib import Path
 
@@ -13,12 +14,47 @@ from sklearn.metrics import (accuracy_score, f1_score, mean_squared_error, preci
                              recall_score, r2_score)
 from sklearn.model_selection import train_test_split
 from django.conf import settings
+from django.http import FileResponse, Http404
 from mongoengine import connect
 from mongoengine.connection import ConnectionFailure, get_connection, get_db
 from pymongo.errors import PyMongoError
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
+
+WORKSPACE_ROOT = Path(__file__).resolve().parent.parent.parent
+FRONTEND_DIR = WORKSPACE_ROOT / "frontend"
+
+
+def _frontend_asset_path(filename):
+    asset_path = (FRONTEND_DIR / filename).resolve()
+    try:
+        asset_path.relative_to(FRONTEND_DIR.resolve())
+    except ValueError as exc:
+        raise Http404("Invalid frontend asset path.") from exc
+
+    if not asset_path.exists() or not asset_path.is_file():
+        raise Http404("Frontend asset not found.")
+
+    return asset_path
+
+
+def home_page(request, resource=None):
+    index_path = FRONTEND_DIR / "index.html"
+    if not index_path.exists():
+        raise Http404("Frontend index page not found.")
+
+    return FileResponse(index_path.open("rb"), content_type="text/html; charset=utf-8")
+
+
+def serve_frontend_asset(request, filename):
+    asset_path = _frontend_asset_path(filename)
+    content_type, _ = mimetypes.guess_type(str(asset_path))
+    return FileResponse(
+        asset_path.open("rb"),
+        content_type=content_type or "application/octet-stream",
+    )
 
 
 def _get_mongodb():

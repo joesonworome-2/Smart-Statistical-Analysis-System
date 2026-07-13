@@ -16,11 +16,20 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from ai_stats_backend.views import analyze_dataset, health_check, upload_dataset
+from ai_stats_backend.views import (
+    analyze_dataset,
+    health_check,
+    home_page,
+    serve_frontend_asset,
+    upload_dataset,
+)
 
 urlpatterns = [
+    path('', home_page, name='home'),
     path('admin/', admin.site.urls),
     path('api/health/', health_check, name='health-check'),
     path('api/datasets/upload/', upload_dataset, name='upload-dataset'),
     path('api/datasets/analyze/', analyze_dataset, name='analyze-dataset'),
+    path('assets/<path:filename>', serve_frontend_asset, name='frontend-asset'),
+    path('<path:resource>', home_page, name='frontend-fallback'),
 ]
