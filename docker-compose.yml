@@ -1,0 +1,343 @@
+services:
+  mongodb:
+    image: mongo:8.0.29
+    container_name: ssas-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - ssas-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ssas-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ssas-network
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: ssas-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - ssas-network
+
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: ssas-auth-service
+    restart: unless-stopped
+    environment:
+      MONGO_URI: ${MONGO_URI}
+      MONGO_DATABASE: ${MONGO_DATABASE}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: ${JWT_ALGORITHM}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+    ports:
+      - "${AUTH_SERVICE_PORT}:8001"
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - ssas-network
+
+  user-service:
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile
+    container_name: ssas-user-service
+    restart: unless-stopped
+    environment:
+      MONGO_URI: ${MONGO_URI}
+      MONGO_DATABASE: ${MONGO_DATABASE}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: ${JWT_ALGORITHM}
+    ports:
+      - "${USER_SERVICE_PORT}:8002"
+    depends_on:
+      - mongodb
+      - auth-service
+    networks:
+      - ssas-network
+
+  dataset-service:
+    build:
+      context: ./services/dataset-service
+      dockerfile: Dockerfile
+    container_name: ssas-dataset-service
+    restart: unless-stopped
+    environment:
+      MONGO_URI: ${MONGO_URI}
+      MONGO_DATABASE: ${MONGO_DATABASE}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: ${JWT_ALGORITHM}
+    ports:
+      - "${DATASET_SERVICE_PORT}:8003"
+    volumes:
+      - dataset_storage:/app/storage/uploads
+    depends_on:
+      - mongodb
+      - auth-service
+      - user-service
+    networks:
+      - ssas-network
+
+  analysis-service:
+    build:
+      context: ./services/analysis-service
+      dockerfile: Dockerfile
+    container_name: ssas-analysis-service
+    restart: unless-stopped
+    environment:
+      MONGO_URI: ${MONGO_URI}
+      MONGO_DATABASE: ${MONGO_DATABASE}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: ${JWT_ALGORITHM}
+      DATASET_SERVICE_URL: http://dataset-service:8003
+      UPLOAD_DIRECTORY: /app/storage/uploads
+    ports:
+      - "${ANALYSIS_SERVICE_PORT}:8004"
+    depends_on:
+      - mongodb
+      - dataset-service
+    volumes:
+      - dataset_storage:/app/storage/uploads
+    networks:
+      - ssas-network
+
+  visualization-service:
+    build:
+      context: ./services/visualization-service
+      dockerfile: Dockerfile
+    container_name: ssas-visualization-service
+    restart: unless-stopped
+    environment:
+      MONGO_URI: ${MONGO_URI}
+      MONGO_DATABASE: ${MONGO_DATABASE}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: ${JWT_ALGORITHM}
+      UPLOAD_DIRECTORY: /app/storage/uploads
+      VISUALIZATION_DIRECTORY: /app/storage/visualizations
+    ports:
+      - "${VISUALIZATION_SERVICE_PORT}:8007"
+    depends_on:
+      - mongodb
+      - auth-service
+      - dataset-service
+    volumes:
+      - dataset_storage:/app/storage/uploads
+      - visualization_storage:/app/storage/visualizations
+    networks:
+      - ssas-network
+
+  report-service:
+    build:
+      context: ./services/report-service
+      dockerfile: Dockerfile
+    container_name: ssas-report-service
+    restart: unless-stopped
+    environment:
+      MONGO_URI: ${MONGO_URI}
+      MONGO_DATABASE: ${MONGO_DATABASE}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: ${JWT_ALGORITHM}
+      VISUALIZATION_SERVICE_URL: http://visualization-service:8007
+      NOTIFICATION_SERVICE_URL: http://notification-service:8009
+      REPORT_DIRECTORY: /app/storage/reports
+    ports:
+      - "${REPORT_SERVICE_PORT:-8008}:8008"
+    volumes:
+      - report_storage:/app/storage/reports
+    depends_on:
+      - mongodb
+      - auth-service
+      - dataset-service
+      - analysis-service
+      - visualization-service
+      - notification-service
+    networks:
+      - ssas-network
+
+
+  statistics-service:
+    build:
+      context: ./services/statistics-service
+      dockerfile: Dockerfile
+
+    container_name: ssas-statistics-service
+    restart: unless-stopped
+
+    environment:
+      MONGO_URI: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb:27017/?authSource=admin
+      MONGO_DATABASE: ${MONGO_DATABASE:-ssas}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      DATASET_STORAGE_PATH: /app/storage/uploads
+
+    ports:
+      - "8005:8005"
+
+    volumes:
+      - dataset_storage:/app/storage/uploads
+
+    depends_on:
+      - mongodb
+      - auth-service
+
+    networks:
+      - ssas-network
+
+
+  # ============================================================
+  # Machine Learning Service
+  # ============================================================
+  ml-service:
+    build:
+      context: ./services/ml-service
+      dockerfile: Dockerfile
+
+    container_name: ssas-ml-service
+    restart: unless-stopped
+
+    environment:
+      MONGO_URI: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb:27017/?authSource=admin
+      MONGO_DATABASE: ${MONGO_DATABASE:-ssas}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      DATASET_STORAGE_PATH: /app/storage/uploads
+      MODEL_STORAGE_PATH: /app/storage/models
+
+    ports:
+      - "8006:8006"
+
+    volumes:
+      - dataset_storage:/app/storage/uploads
+      - ml_model_storage:/app/storage/models
+
+    depends_on:
+      - mongodb
+      - auth-service
+
+    networks:
+      - ssas-network
+
+
+  # ============================================================
+  # Notification Service
+  # ============================================================
+  notification-service:
+    build:
+      context: ./services/notification-service
+      dockerfile: Dockerfile
+
+    container_name: ssas-notification-service
+    restart: unless-stopped
+
+    environment:
+      MONGO_URI: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb:27017/?authSource=admin
+      MONGO_DATABASE: ${MONGO_DATABASE:-ssas}
+
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+
+      EMAIL_PROVIDER: "${EMAIL_PROVIDER:-brevo}"
+      BREVO_API_KEY: "${BREVO_API_KEY}"
+      BREVO_SENDER_EMAIL: "${BREVO_SENDER_EMAIL}"
+      BREVO_SENDER_NAME: "${BREVO_SENDER_NAME:-SSAS Notifications}"
+
+
+      SMTP_HOST: "${SMTP_HOST:-smtp.gmail.com}"
+      SMTP_PORT: "${SMTP_PORT:-587}"
+      SMTP_USERNAME: "${SMTP_USERNAME:-}"
+      SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
+      SMTP_FROM_EMAIL: "${SMTP_FROM_EMAIL:-}"
+      SMTP_FROM_NAME: "${SMTP_FROM_NAME:-SSAS Notifications}"
+      SMTP_USE_TLS: "${SMTP_USE_TLS:-true}"
+
+    ports:
+      - "8009:8009"
+
+    depends_on:
+      - mongodb
+
+    networks:
+      - ssas-network
+
+
+  # ============================================================
+  # API Gateway
+  # ============================================================
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+
+    container_name: ssas-api-gateway
+    restart: unless-stopped
+
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:8001
+      USER_SERVICE_URL: http://user-service:8002
+      DATASET_SERVICE_URL: http://dataset-service:8003
+      ANALYSIS_SERVICE_URL: http://analysis-service:8004
+      STATISTICS_SERVICE_URL: http://statistics-service:8005
+      ML_SERVICE_URL: http://ml-service:8006
+      VISUALIZATION_SERVICE_URL: http://visualization-service:8007
+      REPORT_SERVICE_URL: http://report-service:8008
+      NOTIFICATION_SERVICE_URL: http://notification-service:8009
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      - auth-service
+      - user-service
+      - dataset-service
+      - analysis-service
+      - statistics-service
+      - ml-service
+      - visualization-service
+      - report-service
+      - notification-service
+
+    networks:
+      - ssas-network
+
+networks:
+  ssas-network:
+    driver: bridge
+
+volumes:
+  ml_model_storage:
+  mongodb_data:
+    external: true
+    name: ssas-mongodb-restored
+
+  dataset_storage:
+    external: true
+    name: ssas-dataset-restored
+
+  redis_data:
+  rabbitmq_data:
+  visualization_storage:
+  report_storage:
+

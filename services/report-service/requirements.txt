@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+pymongo
+PyJWT
+httpx
+reportlab
+openpyxl
+python-multipart

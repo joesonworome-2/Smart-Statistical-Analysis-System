@@ -1,0 +1,11 @@
+date,department,students,average_score
+2026-01-01,Science,100,68
+2026-02-01,Science,110,71
+2026-03-01,Science,120,73
+2026-04-01,Science,125,76
+2026-05-01,Science,135,79
+2026-01-01,Business,80,65
+2026-02-01,Business,85,67
+2026-03-01,Business,95,70
+2026-04-01,Business,105,72
+2026-05-01,Business,115,75

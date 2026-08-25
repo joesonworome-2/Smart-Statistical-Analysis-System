@@ -1,17 +1,331 @@
-# Environment files
+# ============================================================
+# SMART STATISTICAL ANALYSIS SYSTEM (SSAS)
+# .gitignore
+# ============================================================
+
+
+# ------------------------------------------------------------
+# ENVIRONMENT FILES / SECRETS
+# ------------------------------------------------------------
+
 .env
-backend/.env
+.env.*
+!.env.example
 
-# Virtual environments
-venv/
-.venv/
+*.key
+*.pem
+*.crt
 
-# Python cache
+secrets/
+credentials/
+
+
+# ------------------------------------------------------------
+# PYTHON
+# ------------------------------------------------------------
+
 __pycache__/
+*.py[cod]
+*$py.class
+
 *.pyc
+*.pyo
+*.pyd
+*.pyk
 
-# VS Code
+.venv/
+venv/
+env/
+ENV/
+
+backend/venv/
+services/*/venv/
+services/*/.venv/
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+.coverage
+.coverage.*
+htmlcov/
+
+*.egg
+*.egg-info/
+.eggs/
+
+build/
+dist/
+
+
+# ------------------------------------------------------------
+# NODE.JS / REACT / VITE
+# ------------------------------------------------------------
+
+node_modules/
+frontend/node_modules/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+.npm/
+.yarn/
+
+frontend/dist/
+frontend/.vite/
+
+dist/
+dist-ssr/
+
+*.local
+
+
+# ------------------------------------------------------------
+# IDE / EDITOR
+# ------------------------------------------------------------
+
 .vscode/
+.idea/
 
-# Database
-db.sqlite3
+*.swp
+*.swo
+*.swn
+
+*~
+.#*
+
+.history/
+
+
+# ------------------------------------------------------------
+# OPERATING SYSTEM FILES
+# ------------------------------------------------------------
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+desktop.ini
+
+
+# ------------------------------------------------------------
+# LOG FILES
+# ------------------------------------------------------------
+
+*.log
+
+logs/
+
+debug.log
+error.log
+
+
+# ------------------------------------------------------------
+# DATABASE FILES
+# ------------------------------------------------------------
+
+*.db
+*.sqlite
+*.sqlite3
+
+*.db-journal
+*.sqlite-journal
+*.sqlite3-journal
+
+dump/
+database-backups/
+
+
+# ------------------------------------------------------------
+# GENERATED STORAGE
+# ------------------------------------------------------------
+
+storage/
+uploads/
+reports/
+visualizations/
+
+*/storage/
+*/uploads/
+*/reports/
+*/visualizations/
+
+services/*/storage/
+services/*/uploads/
+services/*/reports/
+services/*/visualizations/
+
+
+# ------------------------------------------------------------
+# GENERATED REPORT FILES
+# ------------------------------------------------------------
+
+*.generated.pdf
+*.generated.xlsx
+*.generated.xls
+*.generated.csv
+
+
+# ------------------------------------------------------------
+# DOCKER COMPOSE BACKUPS / TEMP FILES
+# ------------------------------------------------------------
+
+docker-compose.yml.backup
+docker-compose.yml.bad
+docker-compose.yml.bad-*
+docker-compose.yml.before-*
+docker-compose.yml.current-backup
+docker-compose.yml.
+
+docker-compose*.backup
+docker-compose*.bak
+docker-compose*.old
+
+
+# ------------------------------------------------------------
+# GENERAL BACKUPS / TEMPORARY FILES
+# ------------------------------------------------------------
+
+*.bak
+*.backup
+*.old
+
+*.save
+*.sav
+
+*.swp
+*.swo
+
+*.before-*
+*.after-*
+
+*.broken
+*.broken-backup
+
+*.backup-before-*
+*.backup-after-*
+
+*.orig
+*.rej
+
+*.tmp
+*.temp
+
+
+# ------------------------------------------------------------
+# TEMP DIRECTORIES
+# ------------------------------------------------------------
+
+tmp/
+temp/
+.cache/
+
+
+# ------------------------------------------------------------
+# REDIS
+# ------------------------------------------------------------
+
+dump.rdb
+redis-data/
+
+
+# ------------------------------------------------------------
+# RABBITMQ
+# ------------------------------------------------------------
+
+rabbitmq-data/
+
+
+# ------------------------------------------------------------
+# MONGODB
+# ------------------------------------------------------------
+
+mongodb-data/
+mongo-data/
+
+
+# ------------------------------------------------------------
+# DOCKER VOLUMES / LOCAL DATA
+# ------------------------------------------------------------
+
+docker-data/
+volumes/
+
+data/
+
+
+# ------------------------------------------------------------
+# CELERY / TASK QUEUE
+# ------------------------------------------------------------
+
+celerybeat-schedule
+celerybeat.pid
+
+
+# ------------------------------------------------------------
+# FRONTEND ENV FILES
+# ------------------------------------------------------------
+
+frontend/.env
+frontend/.env.*
+
+!frontend/.env.example
+
+
+# ------------------------------------------------------------
+# SERVICE ENV FILES
+# ------------------------------------------------------------
+
+services/*/.env
+services/*/.env.*
+
+!services/*/.env.example
+
+
+# ------------------------------------------------------------
+# TEST / COVERAGE OUTPUT
+# ------------------------------------------------------------
+
+coverage.xml
+test-results/
+
+
+# ------------------------------------------------------------
+# PROJECT BACKUPS
+# ------------------------------------------------------------
+
+backups/
+backup/
+
+ssas-backups/
+ssas-volume-backups/
+ssas-migration-backups/
+
+
+# ------------------------------------------------------------
+# LOCAL DEVELOPMENT DATA
+# ------------------------------------------------------------
+
+.local/
+.local-data/
+dev-data/
+
+*.pid
+
+
+# ------------------------------------------------------------
+# KEEP IMPORTANT PROJECT FILES
+# ------------------------------------------------------------
+
+!README.md
+!docker-compose.yml
+
+!frontend/
+!services/
+!src/
+!test-data/

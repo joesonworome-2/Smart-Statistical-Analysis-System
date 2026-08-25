@@ -1,0 +1,6 @@
+group,estimate,lower_ci,upper_ci,standard_error,mean_score
+Group_A,1.20,0.80,1.60,0.20,72
+Group_B,1.80,1.30,2.30,0.25,78
+Group_C,0.90,0.50,1.30,0.20,69
+Group_D,2.10,1.50,2.70,0.30,85
+Group_E,1.50,1.10,1.90,0.20,81
