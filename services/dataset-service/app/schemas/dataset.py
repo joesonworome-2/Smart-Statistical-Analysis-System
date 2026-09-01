@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -14,6 +15,12 @@ class DatasetResponse(BaseModel):
     column_count: int
     columns: list[str]
     status: str
+
+    is_derived: bool = False
+    source_dataset_id: str | None = None
+
+    preparation_steps: list[dict[str, Any]] = []
+
     created_at: datetime
     updated_at: datetime
 

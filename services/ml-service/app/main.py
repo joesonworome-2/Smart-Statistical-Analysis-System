@@ -3,7 +3,9 @@ from fastapi import FastAPI
 from app.config import settings
 from app.database import database_is_available
 from app.routes.ml import router as ml_router
-
+from app.routes.predictive import (
+    router as predictive_router,
+)
 
 app = FastAPI(
     title="SSAS Machine Learning Service",
@@ -15,7 +17,9 @@ app = FastAPI(
 )
 
 app.include_router(ml_router)
-
+app.include_router(
+    predictive_router
+)
 
 @app.get("/")
 def root():

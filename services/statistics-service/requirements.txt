@@ -9,3 +9,5 @@ numpy
 scipy
 openpyxl
 python-multipart==0.0.20
+httpx>=0.27,<1
+scikit-learn

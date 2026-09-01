@@ -1,13 +1,12 @@
 import {
-  Activity,
   BarChart3,
   Bell,
-  BrainCircuit,
+  Brain,
+  ClipboardList,
   Database,
   FileText,
-  LayoutDashboard,
   LogOut,
-  PieChart,
+  Search,
   User,
 } from 'lucide-react'
 
@@ -16,53 +15,125 @@ import {
   useNavigate,
 } from 'react-router-dom'
 
-import { useAuth } from '../context/AuthContext'
+import {
+  useAuth,
+} from '../context/AuthContext'
+
+import './AppShell.css'
 
 
-const menuItems = [
+// ==========================================================
+// NAVIGATION
+// ==========================================================
+
+const NAVIGATION_ITEMS = [
+
   {
-    label: 'Dashboard',
-    path: '/dashboard',
-    icon: LayoutDashboard,
+    label:
+      'Statistics Calculator',
+
+    path:
+      '/dashboard',
+
+    icon:
+      BarChart3,
   },
+
   {
-    label: 'Datasets',
-    path: '/datasets',
-    icon: Database,
+    label:
+      'Survey',
+
+    path:
+      '/survey',
+
+    icon:
+      ClipboardList,
   },
+
   {
-    label: 'Statistical Analysis',
-    path: '/analysis',
-    icon: Activity,
+    label:
+      'Datasets',
+
+    path:
+      '/datasets',
+
+    icon:
+      Database,
   },
+
   {
-    label: 'AI / ML Analysis',
-    path: '/ml',
-    icon: BrainCircuit,
+    label:
+      'Analysis',
+
+    path:
+      '/analysis',
+
+    icon:
+      BarChart3,
   },
+
   {
-    label: 'Visualizations',
-    path: '/visualizations',
-    icon: PieChart,
+    label:
+      'AI / ML',
+
+    path:
+      '/ml',
+
+    icon:
+      Brain,
   },
+
   {
-    label: 'Reports',
-    path: '/reports',
-    icon: FileText,
+    label:
+      'Visualization',
+
+    path:
+      '/visualizations',
+
+    icon:
+      BarChart3,
   },
+
   {
-    label: 'Notifications',
-    path: '/notifications',
-    icon: Bell,
+    label:
+      'Reports',
+
+    path:
+      '/reports',
+
+    icon:
+      FileText,
   },
+
+  {
+    label:
+      'Notifications',
+
+    path:
+      '/notifications',
+
+    icon:
+      Bell,
+  },
+
 ]
 
+
+// ==========================================================
+// APP SHELL
+// ==========================================================
 
 export default function AppShell({
   children,
 }) {
-  const navigate = useNavigate()
-  const location = useLocation()
+
+  const navigate =
+    useNavigate()
+
+
+  const location =
+    useLocation()
+
 
   const {
     user,
@@ -70,98 +141,254 @@ export default function AppShell({
   } = useAuth()
 
 
-  const handleLogout = async () => {
-    await logout()
-    navigate('/login')
-  }
+  // ========================================================
+  // ACTIVE NAVIGATION
+  // ========================================================
 
+  const isActive =
+    (
+      path
+    ) => {
+
+      return (
+        location.pathname ===
+        path
+      )
+    }
+
+
+  // ========================================================
+  // LOGOUT
+  // ========================================================
+
+  const handleLogout =
+    async () => {
+
+      try {
+
+        await logout()
+
+      } catch (
+        error
+      ) {
+
+        console.error(
+          'Logout failed:',
+          error
+        )
+
+      } finally {
+
+        navigate(
+          '/'
+        )
+      }
+    }
+
+
+  // ========================================================
+  // RENDER
+  // ========================================================
 
   return (
-    <div className="dashboard-shell">
 
-      <aside className="sidebar">
+    <div className="ssas-shell">
 
-        <div className="sidebar-brand">
 
-          <div className="sidebar-logo">
-            <BarChart3 size={24} />
-          </div>
+      {/* ==================================================
+          TOP NAVIGATION
+          ================================================== */}
+
+      <header className="ssas-topbar">
+
+
+        {/* BRAND */}
+
+        <button
+          type="button"
+
+          className="ssas-topbar-brand"
+
+          onClick={() =>
+            navigate(
+              '/dashboard'
+            )
+          }
+        >
+
+          <BarChart3
+            size={39}
+          />
+
 
           <div>
-            <strong>SSAS</strong>
+
+            <strong>
+              SSAS
+            </strong>
+
             <span>
-              Statistical Analysis
+              Smart Statistical Analysis System
             </span>
+
           </div>
 
-        </div>
+        </button>
 
 
-        <nav className="sidebar-nav">
+        {/* NAVIGATION */}
 
-          {menuItems.map((item) => {
-            const Icon = item.icon
+        <nav className="ssas-topbar-navigation">
 
-            const active =
-              location.pathname ===
-              item.path
 
-            return (
-              <button
-                key={item.path}
-                className={
-                  active
-                    ? 'nav-item active'
-                    : 'nav-item'
-                }
-                onClick={() =>
-                  navigate(item.path)
-                }
-              >
-                <Icon size={19} />
+          {
+            NAVIGATION_ITEMS.map(
+              (
+                item
+              ) => {
 
-                {item.label}
-              </button>
+                const Icon =
+                  item.icon
+
+
+                return (
+
+                  <button
+                    key={
+                      item.path
+                    }
+
+                    type="button"
+
+                    className={
+                      isActive(
+                        item.path
+                      )
+                        ?
+                        'active'
+                        :
+                        ''
+                    }
+
+                    onClick={() =>
+                      navigate(
+                        item.path
+                      )
+                    }
+                  >
+
+                    <Icon
+                      className="ssas-nav-mobile-icon"
+                      size={17}
+                    />
+
+                    <span>
+                      {
+                        item.label
+                      }
+                    </span>
+
+                  </button>
+
+                )
+              }
             )
-          })}
+          }
+
 
         </nav>
 
 
-        <div className="sidebar-user">
+        {/* USER */}
 
-          <div className="sidebar-user-icon">
-            <User size={17} />
-          </div>
+        <div className="ssas-topbar-actions">
 
-          <div>
-            <strong>
-              {user?.username}
-            </strong>
+
+          <button
+            type="button"
+
+            className="ssas-user-button"
+          >
+
+            <User
+              size={19}
+            />
 
             <span>
-              {user?.role}
+
+              {
+                user?.username
+                ||
+                user?.name
+                ||
+                'User'
+              }
+
             </span>
-          </div>
+
+          </button>
+
+
+          <button
+            type="button"
+
+            className="ssas-signout-button"
+
+            onClick={
+              handleLogout
+            }
+          >
+
+            <LogOut
+              size={19}
+            />
+
+            <span>
+              Sign out
+            </span>
+
+          </button>
+
+
+          <button
+            type="button"
+
+            className="ssas-search-button"
+
+            title="Statistics Calculator"
+
+            onClick={() =>
+              navigate(
+                '/dashboard'
+              )
+            }
+          >
+
+            <Search
+              size={23}
+            />
+
+          </button>
+
 
         </div>
 
 
-        <button
-          className="logout-button"
-          onClick={handleLogout}
-        >
-          <LogOut size={19} />
-          Sign out
-        </button>
-
-      </aside>
+      </header>
 
 
-      <main className="dashboard-main">
+      {/* ==================================================
+          PAGE CONTENT
+          ================================================== */}
+
+      <main className="ssas-shell-content">
+
         {children}
+
       </main>
 
+
     </div>
+
   )
 }

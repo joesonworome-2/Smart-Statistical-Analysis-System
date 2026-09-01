@@ -1,0 +1,1001 @@
+/* ==========================================================
+   SSAS LOGIN PAGE
+   ========================================================== */
+
+.ssas-login-page {
+  position: relative;
+
+  min-height: 100vh;
+
+  display: flex;
+
+  flex-direction: column;
+
+  overflow: hidden;
+
+  background: #061a22;
+
+  color: #101828;
+}
+
+
+/* ==========================================================
+   DATA ANALYTICS BACKGROUND
+   ========================================================== */
+
+.ssas-login-background {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 0;
+
+  overflow: hidden;
+
+  pointer-events: none;
+
+
+  /*
+   * Layered CSS background image.
+   *
+   * This gives the login screen a data-analysis/
+   * analytics themed appearance without depending
+   * on an external image website.
+   */
+
+  background-image:
+
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(0, 188, 178, 0.30),
+      transparent 32%
+    ),
+
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(55, 93, 229, 0.30),
+      transparent 36%
+    ),
+
+    radial-gradient(
+      circle at 80% 15%,
+      rgba(0, 135, 138, 0.22),
+      transparent 28%
+    ),
+
+    linear-gradient(
+      135deg,
+      #041c26 0%,
+      #07323c 42%,
+      #092934 70%,
+      #06141e 100%
+    );
+}
+
+
+/* ==========================================================
+   BACKGROUND GRID
+   ========================================================== */
+
+.ssas-login-grid {
+  position: absolute;
+
+  inset: 0;
+
+  opacity: 0.17;
+
+  background-image:
+
+    linear-gradient(
+      rgba(255, 255, 255, 0.18)
+      1px,
+      transparent
+      1px
+    ),
+
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.18)
+      1px,
+      transparent
+      1px
+    );
+
+  background-size:
+    55px
+    55px;
+}
+
+
+/* ==========================================================
+   BAR CHART DECORATION
+   ========================================================== */
+
+.ssas-login-decoration.decoration-one {
+  position: absolute;
+
+  left: 6%;
+
+  bottom: 8%;
+
+  width: 360px;
+
+  height: 280px;
+
+  display: flex;
+
+  align-items: flex-end;
+
+  gap: 23px;
+
+  padding:
+    35px
+    40px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.13);
+
+  border-radius: 28px;
+
+  background:
+    rgba(255, 255, 255, 0.035);
+
+  backdrop-filter:
+    blur(5px);
+
+  transform:
+    rotate(-5deg);
+}
+
+
+.ssas-login-decoration.decoration-one span {
+  flex: 1;
+
+  border-radius:
+    10px
+    10px
+    3px
+    3px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #5eead4,
+      #00878a
+    );
+
+  box-shadow:
+    0
+    0
+    30px
+    rgba(0, 185, 180, 0.23);
+}
+
+
+.ssas-login-decoration.decoration-one span:nth-child(1) {
+  height: 30%;
+}
+
+
+.ssas-login-decoration.decoration-one span:nth-child(2) {
+  height: 52%;
+}
+
+
+.ssas-login-decoration.decoration-one span:nth-child(3) {
+  height: 43%;
+}
+
+
+.ssas-login-decoration.decoration-one span:nth-child(4) {
+  height: 77%;
+}
+
+
+.ssas-login-decoration.decoration-one span:nth-child(5) {
+  height: 92%;
+}
+
+
+/* ==========================================================
+   LINE CHART DECORATION
+   ========================================================== */
+
+.ssas-login-decoration.decoration-two {
+  position: absolute;
+
+  top: 17%;
+
+  right: 4%;
+
+  width: 420px;
+
+  height: 280px;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.11);
+
+  border-radius: 30px;
+
+  background:
+    rgba(255, 255, 255, 0.03);
+
+  transform:
+    rotate(5deg);
+}
+
+
+.data-line {
+  position: absolute;
+
+  left: -10%;
+
+  width: 120%;
+
+  height: 4px;
+
+  border-radius: 20px;
+
+  transform-origin: center;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #5eead4,
+      #5b8def,
+      #5eead4,
+      transparent
+    );
+
+  box-shadow:
+    0
+    0
+    20px
+    rgba(94, 234, 212, 0.30);
+}
+
+
+.line-one {
+  top: 52%;
+
+  transform:
+    rotate(-11deg);
+}
+
+
+.line-two {
+  top: 39%;
+
+  transform:
+    rotate(8deg);
+
+  opacity: 0.65;
+}
+
+
+.line-three {
+  top: 65%;
+
+  transform:
+    rotate(-4deg);
+
+  opacity: 0.38;
+}
+
+
+/* ==========================================================
+   DECORATIVE DATA POINTS
+   ========================================================== */
+
+.ssas-login-circle {
+  position: absolute;
+
+  border-radius: 50%;
+
+  border:
+    1px solid
+    rgba(94, 234, 212, 0.33);
+
+  background:
+    rgba(94, 234, 212, 0.08);
+}
+
+
+.circle-one {
+  width: 120px;
+
+  height: 120px;
+
+  top: 11%;
+
+  left: 17%;
+}
+
+
+.circle-two {
+  width: 66px;
+
+  height: 66px;
+
+  bottom: 14%;
+
+  right: 22%;
+}
+
+
+.circle-three {
+  width: 180px;
+
+  height: 180px;
+
+  top: 54%;
+
+  right: 7%;
+}
+
+
+/* ==========================================================
+   PAGE OVERLAY
+   ========================================================== */
+
+.ssas-login-page::before {
+  content: '';
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 1;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(2, 19, 27, 0.28),
+      rgba(2, 19, 27, 0.10),
+      rgba(2, 19, 27, 0.28)
+    );
+}
+
+
+/* ==========================================================
+   HEADER
+   ========================================================== */
+
+.ssas-login-header {
+  position: relative;
+
+  z-index: 3;
+
+  min-height: 100px;
+
+  display: flex;
+
+  align-items: center;
+
+  padding:
+    0
+    55px;
+}
+
+
+.ssas-login-brand {
+  display: flex;
+
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+
+.ssas-login-brand svg {
+  color: #5eead4;
+}
+
+
+.ssas-login-brand strong {
+  display: block;
+
+  color: #ffffff;
+
+  font-size: 27px;
+
+  line-height: 1;
+}
+
+
+.ssas-login-brand span {
+  display: block;
+
+  margin-top: 5px;
+
+  color:
+    rgba(255, 255, 255, 0.69);
+
+  font-size: 10px;
+}
+
+
+/* ==========================================================
+   MAIN
+   ========================================================== */
+
+.ssas-login-main {
+  position: relative;
+
+  z-index: 3;
+
+  flex: 1;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  padding:
+    20px
+    25px
+    60px;
+}
+
+
+/* ==========================================================
+   LOGIN CARD
+   ========================================================== */
+
+.ssas-login-card {
+  width: min(
+    720px,
+    calc(
+      100vw
+      -
+      40px
+    )
+  );
+
+  padding:
+    48px
+    55px
+    42px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.65);
+
+  border-radius: 18px;
+
+  background:
+    rgba(255, 255, 255, 0.94);
+
+  backdrop-filter:
+    blur(22px);
+
+  -webkit-backdrop-filter:
+    blur(22px);
+
+  box-shadow:
+    0
+    35px
+    85px
+    rgba(0, 0, 0, 0.32);
+}
+
+
+/* ==========================================================
+   LOGIN HEADING
+   ========================================================== */
+
+.ssas-login-heading {
+  margin-bottom: 38px;
+
+  text-align: center;
+}
+
+
+.ssas-login-eyebrow {
+  display: block;
+
+  margin-bottom: 10px;
+
+  color: #00878a;
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  letter-spacing: 1.3px;
+}
+
+
+.ssas-login-heading h1 {
+  margin:
+    0
+    0
+    9px;
+
+  color: #101828;
+
+  font-size: 46px;
+
+  font-weight: 400;
+
+  line-height: 1.1;
+}
+
+
+.ssas-login-heading p {
+  margin: 0;
+
+  color: #667085;
+
+  font-size: 14px;
+}
+
+
+/* ==========================================================
+   FORM
+   ========================================================== */
+
+.ssas-login-form {
+  width: 100%;
+}
+
+
+/* ==========================================================
+   FIELD
+   ========================================================== */
+
+.ssas-login-field {
+  margin-bottom: 24px;
+}
+
+
+.ssas-login-field label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #101828;
+
+  font-size: 15px;
+
+  font-weight: 600;
+}
+
+
+/* ==========================================================
+   INPUT
+   ========================================================== */
+
+.ssas-login-input {
+  min-height: 62px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  padding:
+    0
+    17px;
+
+  border:
+    1px solid
+    #d0d5dd;
+
+  border-radius: 7px;
+
+  background: #f7f8f8;
+
+  transition:
+    border-color
+    0.15s ease,
+    background
+    0.15s ease,
+    box-shadow
+    0.15s ease;
+}
+
+
+.ssas-login-input:focus-within {
+  border-color: #00878a;
+
+  background: #ffffff;
+
+  box-shadow:
+    0
+    0
+    0
+    4px
+    rgba(0, 135, 138, 0.09);
+}
+
+
+.ssas-login-input > svg {
+  flex-shrink: 0;
+
+  color: #00878a;
+}
+
+
+.ssas-login-input input {
+  flex: 1;
+
+  min-width: 0;
+
+  height: 58px;
+
+  padding: 0;
+
+  border: 0;
+
+  outline: 0;
+
+  background: transparent;
+
+  color: #101828;
+
+  font-size: 15px;
+}
+
+
+.ssas-login-input input::placeholder {
+  color: #98a2b3;
+}
+
+
+/* ==========================================================
+   PASSWORD VISIBILITY
+   ========================================================== */
+
+.ssas-password-toggle {
+  width: 38px;
+
+  height: 38px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  padding: 0;
+
+  border: 0;
+
+  border-radius: 50%;
+
+  background: transparent;
+
+  color: #667085;
+
+  cursor: pointer;
+}
+
+
+.ssas-password-toggle:hover {
+  background: #eef3f3;
+
+  color: #00878a;
+}
+
+
+/* ==========================================================
+   LOGIN BUTTON
+   ========================================================== */
+
+.ssas-login-button {
+  width: 100%;
+
+  min-height: 58px;
+
+  margin-top: 5px;
+
+  border: 0;
+
+  border-radius: 8px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #009b9f,
+      #00777a
+    );
+
+  color: #ffffff;
+
+  font-size: 16px;
+
+  font-weight: 800;
+
+  cursor: pointer;
+
+  box-shadow:
+    0
+    10px
+    24px
+    rgba(0, 135, 138, 0.20);
+
+  transition:
+    transform
+    0.15s ease,
+    box-shadow
+    0.15s ease;
+}
+
+
+.ssas-login-button:hover:not(:disabled) {
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0
+    13px
+    30px
+    rgba(0, 135, 138, 0.27);
+}
+
+
+.ssas-login-button:disabled {
+  opacity: 0.65;
+
+  cursor: not-allowed;
+}
+
+
+/* ==========================================================
+   FORGOT PASSWORD
+   ========================================================== */
+
+.ssas-forgot-password {
+  display: block;
+
+  margin:
+    24px
+    auto
+    0;
+
+  padding: 5px;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #00878a;
+
+  font-size: 14px;
+
+  cursor: pointer;
+}
+
+
+.ssas-forgot-password:hover {
+  text-decoration: underline;
+}
+
+
+/* ==========================================================
+   REGISTER
+   ========================================================== */
+
+.ssas-register-message {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  flex-wrap: wrap;
+
+  gap: 5px;
+
+  margin-top: 28px;
+
+  padding-top: 24px;
+
+  border-top:
+    1px solid
+    #eaecf0;
+
+  color: #344054;
+
+  font-size: 14px;
+}
+
+
+.ssas-register-message a {
+  color: #00878a;
+
+  font-weight: 700;
+
+  text-decoration: none;
+}
+
+
+.ssas-register-message a:hover {
+  text-decoration: underline;
+}
+
+
+/* ==========================================================
+   ALERTS
+   ========================================================== */
+
+.ssas-login-alert {
+  margin-bottom: 20px;
+
+  padding:
+    13px
+    15px;
+
+  border-radius: 7px;
+
+  font-size: 13px;
+
+  line-height: 1.5;
+}
+
+
+.ssas-login-alert.error {
+  border:
+    1px solid
+    #fecaca;
+
+  background: #fef2f2;
+
+  color: #b42318;
+}
+
+
+.ssas-login-alert.success {
+  border:
+    1px solid
+    #a7f3d0;
+
+  background: #ecfdf3;
+
+  color: #067647;
+}
+
+
+/* ==========================================================
+   FOOTER
+   ========================================================== */
+
+.ssas-login-footer {
+  position: relative;
+
+  z-index: 3;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  flex-wrap: wrap;
+
+  gap: 10px;
+
+  min-height: 55px;
+
+  padding:
+    15px
+    20px;
+
+  color:
+    rgba(255, 255, 255, 0.66);
+
+  font-size: 10px;
+}
+
+
+.ssas-login-footer span:first-child {
+  color: #5eead4;
+
+  font-weight: 800;
+}
+
+
+/* ==========================================================
+   RESPONSIVE
+   ========================================================== */
+
+@media (
+  max-width: 750px
+) {
+
+  .ssas-login-header {
+    min-height: 80px;
+
+    padding:
+      0
+      22px;
+  }
+
+
+  .ssas-login-card {
+    padding:
+      38px
+      26px
+      32px;
+  }
+
+
+  .ssas-login-heading h1 {
+    font-size: 38px;
+  }
+
+
+  .ssas-login-decoration.decoration-one {
+    opacity: 0.45;
+  }
+
+
+  .ssas-login-decoration.decoration-two {
+    opacity: 0.4;
+  }
+}
+
+
+@media (
+  max-width: 480px
+) {
+
+  .ssas-login-brand span {
+    display: none;
+  }
+
+
+  .ssas-login-main {
+    padding:
+      10px
+      15px
+      35px;
+  }
+
+
+  .ssas-login-card {
+    width: 100%;
+
+    padding:
+      32px
+      20px
+      28px;
+  }
+
+
+  .ssas-login-heading h1 {
+    font-size: 34px;
+  }
+
+
+  .ssas-login-input {
+    min-height: 56px;
+  }
+
+
+  .ssas-login-input input {
+    height: 54px;
+  }
+}

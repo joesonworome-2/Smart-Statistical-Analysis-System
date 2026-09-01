@@ -1,0 +1,373 @@
+/* ==========================================================
+   EXPORT / IMPORT MODAL
+   ========================================================== */
+
+.transfer-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background:
+    rgba(16, 24, 40, 0.56);
+
+  backdrop-filter: blur(2px);
+}
+
+
+.transfer-modal {
+  width: 100%;
+  max-width: 520px;
+
+  max-height: 90vh;
+
+  overflow-y: auto;
+
+  padding: 26px 28px;
+
+  border: 1px solid #e4e7ec;
+
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 24px 60px
+    rgba(16, 24, 40, 0.25);
+
+  animation:
+    transferModalAppear
+    0.16s
+    ease-out;
+}
+
+
+.transfer-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 18px;
+
+  padding-bottom: 7px;
+
+  border-bottom:
+    1px solid #74c9c9;
+}
+
+
+.transfer-modal-header h2 {
+  margin: 0;
+
+  color: #101828;
+
+  font-size: 22px;
+}
+
+
+.transfer-close-button {
+  width: 31px;
+  height: 31px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 6px;
+
+  background: transparent;
+
+  color: #344054;
+
+  cursor: pointer;
+}
+
+
+.transfer-close-button:hover {
+  background: #f2f4f7;
+}
+
+
+.transfer-error {
+  margin-bottom: 15px;
+
+  padding: 9px 11px;
+
+  border: 1px solid #fecdca;
+
+  border-radius: 7px;
+
+  color: #b42318;
+
+  background: #fef3f2;
+
+  font-size: 10px;
+}
+
+
+.transfer-section {
+  margin-bottom: 25px;
+}
+
+
+.transfer-section:last-child {
+  margin-bottom: 0;
+}
+
+
+.transfer-section h3 {
+  margin: 0 0 4px;
+
+  color: #101828;
+
+  font-size: 19px;
+}
+
+
+.transfer-section p {
+  margin: 10px 0 13px;
+
+  color: #475467;
+
+  font-size: 10px;
+
+  line-height: 1.55;
+}
+
+
+.transfer-divider {
+  width: 100%;
+  height: 1px;
+
+  background: #7acaca;
+}
+
+
+.transfer-export-buttons {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 7px;
+}
+
+
+.transfer-primary-button {
+  min-height: 35px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  padding: 0 12px;
+
+  border: 0;
+
+  border-radius: 7px;
+
+  color: #ffffff;
+
+  background: #087f7f;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+.transfer-primary-button:hover {
+  background: #066b6b;
+}
+
+
+.transfer-drop-zone {
+  min-height: 145px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  margin-top: 15px;
+
+  padding: 20px;
+
+  border:
+    3px dashed
+    #c7c9cc;
+
+  background: #ffffff;
+
+  color: #344054;
+
+  text-align: center;
+
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+
+.transfer-drop-zone svg {
+  color: #087f7f;
+}
+
+
+.transfer-drop-zone strong {
+  font-size: 12px;
+}
+
+
+.transfer-drop-zone span {
+  color: #667085;
+
+  font-size: 10px;
+}
+
+
+.transfer-drop-zone small {
+  color: #087f7f;
+
+  font-size: 10px;
+}
+
+
+.transfer-drop-zone.dragging {
+  border-color: #087f7f;
+
+  background: #f0fdfc;
+}
+
+
+.transfer-or {
+  display: grid;
+
+  grid-template-columns:
+    1fr auto 1fr;
+
+  align-items: center;
+
+  gap: 10px;
+
+  margin: 18px 0;
+}
+
+
+.transfer-or span {
+  height: 1px;
+
+  background: #74c9c9;
+}
+
+
+.transfer-or b {
+  color: #667085;
+
+  font-size: 10px;
+
+  font-weight: 500;
+}
+
+
+.transfer-file-picker {
+  display: flex;
+
+  min-height: 40px;
+
+  overflow: hidden;
+
+  border: 1px solid #d0d5dd;
+
+  border-radius: 6px;
+}
+
+
+.transfer-file-label {
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+
+  padding: 0 12px;
+
+  color: #667085;
+
+  background: #ffffff;
+
+  font-size: 10px;
+}
+
+
+.transfer-browse-button {
+  min-width: 92px;
+
+  border: 0;
+
+  color: #ffffff;
+
+  background: #087f7f;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+.transfer-browse-button:hover {
+  background: #066b6b;
+}
+
+
+.transfer-browse-button:disabled,
+.transfer-close-button:disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+}
+
+
+@keyframes transferModalAppear {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(7px)
+      scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+@media (max-width: 600px) {
+  .transfer-modal {
+    padding: 20px;
+  }
+
+  .transfer-export-buttons {
+    flex-direction: column;
+  }
+
+  .transfer-primary-button {
+    width: 100%;
+  }
+}

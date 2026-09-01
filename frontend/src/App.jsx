@@ -10,14 +10,27 @@ import ProtectedRoute
 import AdminRoute
   from './components/AdminRoute'
 
+
+// ==========================================================
+// PUBLIC PAGES
+// ==========================================================
+
+import StatisticsCalculatorLanding
+  from './pages/StatisticsCalculatorLanding'
+
 import LoginPage
   from './pages/auth/LoginPage'
 
 import RegisterPage
   from './pages/auth/RegisterPage'
 
-import DashboardPage
-  from './pages/dashboard/DashboardPage'
+
+// ==========================================================
+// PROTECTED PAGES
+// ==========================================================
+
+import SurveyPage
+  from './pages/survey/SurveyPage'
 
 import DatasetsPage
   from './pages/datasets/DatasetsPage'
@@ -37,57 +50,100 @@ import ReportsPage
 import NotificationsPage
   from './pages/notifications/NotificationsPage'
 
+
+// ==========================================================
+// ADMIN PAGES
+// ==========================================================
+
 import AdminPage
   from './pages/admin/AdminPage'
 
 import UserManagementPage
   from './pages/admin/UserManagementPage'
 
+
+// ==========================================================
+// PROTECTED WRAPPER
+// ==========================================================
+
 function Protected({
   children,
 }) {
+
   return (
+
     <ProtectedRoute>
+
       {children}
+
     </ProtectedRoute>
+
   )
 }
 
+
+// ==========================================================
+// ADMIN WRAPPER
+// ==========================================================
 
 function AdminProtected({
   children,
 }) {
+
   return (
+
     <AdminRoute>
+
       {children}
+
     </AdminRoute>
+
   )
 }
 
 
+// ==========================================================
+// APP
+// ==========================================================
+
 export default function App() {
+
   return (
+
     <Routes>
 
-      {/* Default route */}
+
+      {/* ==================================================
+          PUBLIC LANDING PAGE
+          ================================================== */}
+
       <Route
         path="/"
         element={
-          <Navigate
-            to="/dashboard"
-            replace
-          />
+          <StatisticsCalculatorLanding />
         }
       />
 
 
-      {/* Authentication */}
+      <Route
+        path="/statistics-calculator"
+        element={
+          <StatisticsCalculatorLanding />
+        }
+      />
+
+
+      {/* ==================================================
+          AUTHENTICATION
+          ================================================== */}
+
       <Route
         path="/login"
         element={
           <LoginPage />
         }
       />
+
 
       <Route
         path="/register"
@@ -97,99 +153,200 @@ export default function App() {
       />
 
 
-      {/* Dashboard */}
+      {/* ==================================================
+          DASHBOARD
+          ================================================== */}
+
       <Route
         path="/dashboard"
         element={
+
           <Protected>
-            <DashboardPage />
+
+            <StatisticsCalculatorLanding />
+
           </Protected>
+
         }
       />
 
 
-      {/* Dataset Management */}
+      {/* ==================================================
+          SURVEY
+          ================================================== */}
+
+      <Route
+        path="/survey"
+        element={
+
+          <Protected>
+
+            <SurveyPage />
+
+          </Protected>
+
+        }
+      />
+
+
+      {/* ==================================================
+          DATASETS
+          ================================================== */}
+
       <Route
         path="/datasets"
         element={
+
           <Protected>
+
             <DatasetsPage />
+
           </Protected>
+
         }
       />
 
 
-      {/* Statistical Analysis */}
+      {/* ==================================================
+          STATISTICAL ANALYSIS
+          ================================================== */}
+
       <Route
         path="/analysis"
         element={
+
           <Protected>
+
             <AnalysisPage />
+
           </Protected>
+
         }
       />
 
 
-      {/* AI / Machine Learning */}
+      {/* ==================================================
+          AI / ML
+          ================================================== */}
+
       <Route
         path="/ml"
         element={
+
           <Protected>
+
             <MLPage />
+
           </Protected>
+
         }
       />
 
 
-      {/* Visualizations */}
+      {/* ==================================================
+          VISUALIZATION
+          ================================================== */}
+
       <Route
         path="/visualizations"
         element={
+
           <Protected>
+
             <VisualizationsPage />
+
           </Protected>
+
         }
       />
 
 
-      {/* Reports */}
+      {/* ==================================================
+          REPORTS
+          ================================================== */}
+
       <Route
         path="/reports"
         element={
+
           <Protected>
+
             <ReportsPage />
+
           </Protected>
+
         }
       />
 
 
-      {/* Notifications */}
+      {/* ==================================================
+          NOTIFICATIONS
+          ================================================== */}
+
       <Route
         path="/notifications"
         element={
+
           <Protected>
+
             <NotificationsPage />
+
           </Protected>
+
         }
       />
 
-<Route
-  path="/admin"
-  element={
-    <AdminProtected>
-      <AdminPage />
-    </AdminProtected>
-  }
-/>
 
-<Route
-  path="/admin/users"
-  element={
-    <AdminProtected>
-      <UserManagementPage />
-    </AdminProtected>
-  }
-/>
+      {/* ==================================================
+          ADMIN
+          ================================================== */}
+
+      <Route
+        path="/admin"
+        element={
+
+          <AdminProtected>
+
+            <AdminPage />
+
+          </AdminProtected>
+
+        }
+      />
+
+
+      <Route
+        path="/admin/users"
+        element={
+
+          <AdminProtected>
+
+            <UserManagementPage />
+
+          </AdminProtected>
+
+        }
+      />
+
+
+      {/* ==================================================
+          UNKNOWN ROUTES
+          ================================================== */}
+
+      <Route
+        path="*"
+        element={
+
+          <Navigate
+            to="/"
+            replace
+          />
+
+        }
+      />
+
+
     </Routes>
+
   )
 }

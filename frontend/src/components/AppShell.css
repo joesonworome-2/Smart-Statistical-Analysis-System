@@ -1,0 +1,512 @@
+/* ==========================================================
+   SSAS APPLICATION SHELL
+   ========================================================== */
+
+.ssas-shell {
+  width: 100%;
+
+  min-height: 100vh;
+
+  background: #f6f8fb;
+
+  color: #101828;
+}
+
+
+/* ==========================================================
+   TOP NAVIGATION BAR
+   ========================================================== */
+
+.ssas-topbar {
+  position: sticky;
+
+  top: 0;
+
+  z-index: 1000;
+
+  width: 100%;
+
+  min-height: 104px;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(290px, auto)
+    1fr
+    auto;
+
+  align-items: center;
+
+  gap: 32px;
+
+  padding:
+    0
+    54px;
+
+  border-bottom:
+    1px solid
+    #e4e7ec;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.96
+    );
+
+  backdrop-filter:
+    blur(12px);
+
+  -webkit-backdrop-filter:
+    blur(12px);
+
+  box-shadow:
+    0
+    1px
+    4px
+    rgba(
+      16,
+      24,
+      40,
+      0.04
+    );
+}
+
+
+/* ==========================================================
+   BRAND
+   ========================================================== */
+
+.ssas-topbar-brand {
+  display: flex;
+
+  align-items: center;
+
+  gap: 15px;
+
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+
+.ssas-topbar-brand > svg {
+  flex-shrink: 0;
+
+  color: #00878a;
+}
+
+
+.ssas-topbar-brand div {
+  min-width: 0;
+}
+
+
+.ssas-topbar-brand strong {
+  display: block;
+
+  color: #101828;
+
+  font-size: 27px;
+
+  font-weight: 800;
+
+  line-height: 1;
+}
+
+
+.ssas-topbar-brand span {
+  display: block;
+
+  margin-top: 7px;
+
+  color: #667085;
+
+  font-size: 10px;
+
+  white-space: nowrap;
+}
+
+
+/* ==========================================================
+   NAVIGATION
+   ========================================================== */
+
+.ssas-topbar-navigation {
+  height: 104px;
+
+  display: flex;
+
+  align-items: stretch;
+
+  justify-content: center;
+
+  gap: 4px;
+
+  overflow-x: auto;
+
+  scrollbar-width: none;
+}
+
+
+.ssas-topbar-navigation::-webkit-scrollbar {
+  display: none;
+}
+
+
+.ssas-topbar-navigation button {
+  position: relative;
+
+  min-width: max-content;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 6px;
+
+  padding:
+    0
+    18px;
+
+  border: 0;
+
+  border-bottom:
+    3px solid
+    transparent;
+
+  background: transparent;
+
+  color: #00777a;
+
+  font-size: 14px;
+
+  font-weight: 500;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    color
+    0.15s ease,
+    background
+    0.15s ease,
+    border-color
+    0.15s ease;
+}
+
+
+.ssas-topbar-navigation button:hover {
+  background:
+    rgba(
+      0,
+      135,
+      138,
+      0.04
+    );
+
+  color: #005f61;
+}
+
+
+.ssas-topbar-navigation button.active {
+  border-bottom-color:
+    #00878a;
+
+  color: #005f61;
+
+  font-weight: 800;
+}
+
+
+.ssas-nav-mobile-icon {
+  display: none;
+}
+
+
+/* ==========================================================
+   USER ACTIONS
+   ========================================================== */
+
+.ssas-topbar-actions {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: flex-end;
+
+  gap: 8px;
+}
+
+
+.ssas-topbar-actions button {
+  border: 0;
+
+  background: transparent;
+
+  color: #00777a;
+
+  cursor: pointer;
+}
+
+
+.ssas-user-button,
+.ssas-signout-button {
+  min-height: 44px;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+
+  padding:
+    0
+    10px;
+
+  border-radius: 7px;
+}
+
+
+.ssas-user-button:hover,
+.ssas-signout-button:hover,
+.ssas-search-button:hover {
+  background:
+    rgba(
+      0,
+      135,
+      138,
+      0.06
+    );
+}
+
+
+.ssas-user-button span,
+.ssas-signout-button span {
+  font-size: 13px;
+
+  white-space: nowrap;
+}
+
+
+.ssas-search-button {
+  width: 44px;
+
+  height: 44px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  padding: 0;
+
+  border-radius: 50%;
+}
+
+
+/* ==========================================================
+   PAGE CONTENT
+   ========================================================== */
+
+.ssas-shell-content {
+  width: 100%;
+
+  min-height:
+    calc(
+      100vh
+      -
+      104px
+    );
+
+  margin: 0;
+
+  padding: 0;
+}
+
+
+/* ==========================================================
+   REMOVE OLD SIDEBAR LAYOUT SIDE EFFECTS
+   ========================================================== */
+
+.ssas-shell-content
+.app-main,
+
+.ssas-shell-content
+.main-content,
+
+.ssas-shell-content
+.page-content {
+  margin-left: 0 !important;
+
+  width: 100% !important;
+}
+
+
+/* ==========================================================
+   RESPONSIVE
+   ========================================================== */
+
+@media (
+  max-width: 1450px
+) {
+
+  .ssas-topbar {
+    grid-template-columns:
+      minmax(
+        230px,
+        auto
+      )
+      1fr
+      auto;
+
+    gap: 15px;
+
+    padding:
+      0
+      25px;
+  }
+
+
+  .ssas-topbar-navigation button {
+    padding:
+      0
+      11px;
+
+    font-size: 12px;
+  }
+
+
+  .ssas-user-button span {
+    max-width: 100px;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+  }
+}
+
+
+@media (
+  max-width: 1150px
+) {
+
+  .ssas-topbar {
+    min-height: 88px;
+
+    grid-template-columns:
+      auto
+      1fr
+      auto;
+
+    padding:
+      0
+      18px;
+  }
+
+
+  .ssas-topbar-navigation {
+    height: 88px;
+
+    justify-content: flex-start;
+  }
+
+
+  .ssas-topbar-navigation button {
+    padding:
+      0
+      9px;
+  }
+
+
+  .ssas-topbar-brand span {
+    display: none;
+  }
+
+
+  .ssas-signout-button span,
+  .ssas-user-button span {
+    display: none;
+  }
+
+
+  .ssas-shell-content {
+    min-height:
+      calc(
+        100vh
+        -
+        88px
+      );
+  }
+}
+
+
+@media (
+  max-width: 800px
+) {
+
+  .ssas-topbar {
+    min-height: auto;
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 10px;
+
+    padding:
+      15px;
+  }
+
+
+  .ssas-topbar-brand {
+    flex: 1;
+  }
+
+
+  .ssas-topbar-navigation {
+    order: 3;
+
+    width: 100%;
+
+    height: 55px;
+
+    justify-content: flex-start;
+
+    border-top:
+      1px solid
+      #eaecf0;
+  }
+
+
+  .ssas-topbar-navigation button {
+    min-height: 55px;
+
+    padding:
+      0
+      13px;
+  }
+
+
+  .ssas-nav-mobile-icon {
+    display: block;
+  }
+
+
+  .ssas-topbar-actions {
+    margin-left: auto;
+  }
+}
