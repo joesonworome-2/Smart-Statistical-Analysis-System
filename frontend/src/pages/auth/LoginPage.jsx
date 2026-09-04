@@ -42,6 +42,7 @@ function loadGoogleScript() {
           ?.accounts
           ?.id
       ) {
+
         resolve(
           window.google
         )
@@ -221,7 +222,6 @@ export default function LoginPage() {
       if (
         !clientId
       ) {
-
         return
       }
 
@@ -298,14 +298,35 @@ export default function LoginPage() {
                     err
                   ) {
 
-                    setError(
+                    console.error(
+                      'Google login failed:',
+                      err
+                    )
+
+
+                    const detail =
                       err
                         ?.response
                         ?.data
                         ?.detail
-                      ||
-                      'Unable to sign in with Google.'
-                    )
+
+
+                    if (
+                      typeof detail
+                      ===
+                      'string'
+                    ) {
+
+                      setError(
+                        detail
+                      )
+
+                    } else {
+
+                      setError(
+                        'Unable to sign in with Google.'
+                      )
+                    }
 
                   } finally {
 
@@ -410,7 +431,9 @@ export default function LoginPage() {
     return (
 
       <Navigate
-        to="/dashboard"
+        to={
+          destination
+        }
         replace
       />
 
@@ -460,14 +483,45 @@ export default function LoginPage() {
         err
       ) {
 
-        setError(
+        console.error(
+          'Login failed:',
+          err
+        )
+
+
+        const detail =
           err
             ?.response
             ?.data
             ?.detail
-          ||
-          'Unable to sign in. Check your email and password.'
-        )
+
+
+        if (
+          typeof detail
+          ===
+          'string'
+        ) {
+
+          setError(
+            detail
+          )
+
+        } else if (
+          err?.code
+          ===
+          'ERR_NETWORK'
+        ) {
+
+          setError(
+            'Unable to reach the SSAS server.'
+          )
+
+        } else {
+
+          setError(
+            'Unable to sign in. Check your email and password.'
+          )
+        }
 
       } finally {
 
@@ -590,9 +644,12 @@ export default function LoginPage() {
           <h1>
 
             Make every dataset
+
             <strong>
+
               {' '}
               tell a clearer story.
+
             </strong>
 
           </h1>
@@ -711,7 +768,7 @@ export default function LoginPage() {
           </div>
 
 
-          {/* SUCCESS */}
+          {/* SUCCESS MESSAGE */}
 
           {
             location
@@ -734,7 +791,7 @@ export default function LoginPage() {
           }
 
 
-          {/* ERROR */}
+          {/* ERROR MESSAGE */}
 
           {
             error
@@ -1038,6 +1095,10 @@ export default function LoginPage() {
           </form>
 
 
+          {/* =================================================
+              REGISTER
+              ================================================= */}
+
           <div className="auth-switch">
 
 
@@ -1050,6 +1111,11 @@ export default function LoginPage() {
 
             <Link
               to="/register"
+
+              state={{
+                from:
+                  destination,
+              }}
             >
 
               Create account

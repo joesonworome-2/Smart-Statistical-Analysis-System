@@ -306,7 +306,7 @@ services:
       NOTIFICATION_SERVICE_URL: http://notification-service:8009
 
     ports:
-      - "8000:8000"
+      - "8011:8000"
 
     depends_on:
       - auth-service

@@ -4,6 +4,11 @@ import {
 } from 'react'
 
 import {
+  useLocation,
+  useNavigate,
+} from 'react-router-dom'
+
+import {
   ArrowRight,
   BarChart3,
   Database,
@@ -13,11 +18,6 @@ import {
   User,
   X,
 } from 'lucide-react'
-
-import {
-  useLocation,
-  useNavigate,
-} from 'react-router-dom'
 
 import {
   useAuth,
@@ -37,11 +37,8 @@ const STATISTICAL_METHODS = [
   // ========================================================
 
   {
-    label:
-      'Prepare Data',
-
-    category:
-      'Data Preparation',
+    label: 'Prepare Data',
+    category: 'Data Preparation',
 
     keywords: [
       'clean',
@@ -53,8 +50,7 @@ const STATISTICAL_METHODS = [
       'data',
     ],
 
-    path:
-      '/datasets',
+    path: '/datasets',
   },
 
 
@@ -63,11 +59,8 @@ const STATISTICAL_METHODS = [
   // ========================================================
 
   {
-    label:
-      'Descriptive Statistics',
-
-    category:
-      'Descriptive Statistics',
+    label: 'Descriptive Statistics',
+    category: 'Descriptive Statistics',
 
     keywords: [
       'summary',
@@ -75,85 +68,60 @@ const STATISTICAL_METHODS = [
       'statistics',
     ],
 
-    path:
-      '/analysis?method=descriptive',
+    path: '/analysis?method=descriptive',
   },
 
-
   {
-    label:
-      'Mean',
-
-    category:
-      'Descriptive Statistics',
+    label: 'Mean',
+    category: 'Descriptive Statistics',
 
     keywords: [
       'average',
       'arithmetic mean',
     ],
 
-    path:
-      '/analysis?method=descriptive',
+    path: '/analysis?method=descriptive',
   },
 
-
   {
-    label:
-      'Median',
-
-    category:
-      'Descriptive Statistics',
+    label: 'Median',
+    category: 'Descriptive Statistics',
 
     keywords: [
       'middle',
       'central tendency',
     ],
 
-    path:
-      '/analysis?method=descriptive',
+    path: '/analysis?method=descriptive',
   },
 
-
   {
-    label:
-      'Mode',
-
-    category:
-      'Descriptive Statistics',
+    label: 'Mode',
+    category: 'Descriptive Statistics',
 
     keywords: [
       'frequency',
       'most common',
     ],
 
-    path:
-      '/analysis?method=descriptive',
+    path: '/analysis?method=descriptive',
   },
 
-
   {
-    label:
-      'Mean, Median, Mode',
-
-    category:
-      'Descriptive Statistics',
+    label: 'Mean, Median, Mode',
+    category: 'Descriptive Statistics',
 
     keywords: [
       'central tendency',
       'average',
     ],
 
-    path:
-      '/analysis?method=descriptive',
+    path: '/analysis?method=descriptive',
   },
 
-
   {
-    label:
-      'Standard Deviation',
-
-    category:
-      'Descriptive Statistics',
+    label: 'Standard Deviation',
+    category: 'Descriptive Statistics',
 
     keywords: [
       'sd',
@@ -161,34 +129,24 @@ const STATISTICAL_METHODS = [
       'dispersion',
     ],
 
-    path:
-      '/analysis?method=descriptive',
+    path: '/analysis?method=descriptive',
   },
 
-
   {
-    label:
-      'Variance',
-
-    category:
-      'Descriptive Statistics',
+    label: 'Variance',
+    category: 'Descriptive Statistics',
 
     keywords: [
       'spread',
       'dispersion',
     ],
 
-    path:
-      '/analysis?method=descriptive',
+    path: '/analysis?method=descriptive',
   },
 
-
   {
-    label:
-      'Range',
-
-    category:
-      'Descriptive Statistics',
+    label: 'Range',
+    category: 'Descriptive Statistics',
 
     keywords: [
       'minimum',
@@ -196,17 +154,12 @@ const STATISTICAL_METHODS = [
       'spread',
     ],
 
-    path:
-      '/analysis?method=descriptive',
+    path: '/analysis?method=descriptive',
   },
 
-
   {
-    label:
-      'Quartiles',
-
-    category:
-      'Descriptive Statistics',
+    label: 'Quartiles',
+    category: 'Descriptive Statistics',
 
     keywords: [
       'q1',
@@ -215,17 +168,12 @@ const STATISTICAL_METHODS = [
       'percentile',
     ],
 
-    path:
-      '/analysis?method=descriptive',
+    path: '/analysis?method=descriptive',
   },
 
-
   {
-    label:
-      'Skewness and Kurtosis',
-
-    category:
-      'Descriptive Statistics',
+    label: 'Skewness and Kurtosis',
+    category: 'Descriptive Statistics',
 
     keywords: [
       'skew',
@@ -234,17 +182,12 @@ const STATISTICAL_METHODS = [
       'shape',
     ],
 
-    path:
-      '/analysis?method=descriptive',
+    path: '/analysis?method=descriptive',
   },
 
-
   {
-    label:
-      'Frequency Table',
-
-    category:
-      'Descriptive Statistics',
+    label: 'Frequency Table',
+    category: 'Descriptive Statistics',
 
     keywords: [
       'frequency',
@@ -252,17 +195,12 @@ const STATISTICAL_METHODS = [
       'table',
     ],
 
-    path:
-      '/analysis?method=descriptive',
+    path: '/analysis?method=descriptive',
   },
 
-
   {
-    label:
-      'Confidence Interval for Mean',
-
-    category:
-      'Descriptive Statistics',
+    label: 'Confidence Interval for Mean',
+    category: 'Descriptive Statistics',
 
     keywords: [
       'confidence interval',
@@ -270,17 +208,12 @@ const STATISTICAL_METHODS = [
       'mean',
     ],
 
-    path:
-      '/analysis?method=descriptive',
+    path: '/analysis?method=descriptive',
   },
 
-
   {
-    label:
-      'Normality Test',
-
-    category:
-      'Descriptive Statistics',
+    label: 'Normality Test',
+    category: 'Descriptive Statistics',
 
     keywords: [
       'normal distribution',
@@ -288,17 +221,12 @@ const STATISTICAL_METHODS = [
       'shapiro',
     ],
 
-    path:
-      '/analysis?method=descriptive',
+    path: '/analysis?method=descriptive',
   },
 
-
   {
-    label:
-      'Shapiro-Wilk Test',
-
-    category:
-      'Descriptive Statistics',
+    label: 'Shapiro-Wilk Test',
+    category: 'Descriptive Statistics',
 
     keywords: [
       'normality',
@@ -306,17 +234,12 @@ const STATISTICAL_METHODS = [
       'shapiro',
     ],
 
-    path:
-      '/analysis?method=descriptive',
+    path: '/analysis?method=descriptive',
   },
 
-
   {
-    label:
-      'Kolmogorov-Smirnov Test',
-
-    category:
-      'Descriptive Statistics',
+    label: 'Kolmogorov-Smirnov Test',
+    category: 'Descriptive Statistics',
 
     keywords: [
       'normality',
@@ -324,8 +247,7 @@ const STATISTICAL_METHODS = [
       'kolmogorov',
     ],
 
-    path:
-      '/analysis?method=descriptive',
+    path: '/analysis?method=descriptive',
   },
 
 
@@ -334,11 +256,8 @@ const STATISTICAL_METHODS = [
   // ========================================================
 
   {
-    label:
-      'Hypothesis Testing',
-
-    category:
-      'Hypothesis Tests',
+    label: 'Hypothesis Testing',
+    category: 'Hypothesis Tests',
 
     keywords: [
       'hypothesis',
@@ -346,34 +265,24 @@ const STATISTICAL_METHODS = [
       'p value',
     ],
 
-    path:
-      '/analysis?method=hypothesis',
+    path: '/analysis?method=hypothesis',
   },
 
-
   {
-    label:
-      'p-Value',
-
-    category:
-      'Hypothesis Tests',
+    label: 'p-Value',
+    category: 'Hypothesis Tests',
 
     keywords: [
       'significance',
       'probability',
     ],
 
-    path:
-      '/analysis?method=hypothesis',
+    path: '/analysis?method=hypothesis',
   },
 
-
   {
-    label:
-      'One Sample t-Test',
-
-    category:
-      'Hypothesis Tests',
+    label: 'One Sample t-Test',
+    category: 'Hypothesis Tests',
 
     keywords: [
       't test',
@@ -381,17 +290,12 @@ const STATISTICAL_METHODS = [
       'mean',
     ],
 
-    path:
-      '/analysis?method=hypothesis',
+    path: '/analysis?method=hypothesis',
   },
 
-
   {
-    label:
-      'Independent Samples t-Test',
-
-    category:
-      'Hypothesis Tests',
+    label: 'Independent Samples t-Test',
+    category: 'Hypothesis Tests',
 
     keywords: [
       'independent',
@@ -399,17 +303,12 @@ const STATISTICAL_METHODS = [
       't test',
     ],
 
-    path:
-      '/analysis?method=hypothesis',
+    path: '/analysis?method=hypothesis',
   },
 
-
   {
-    label:
-      'Paired Samples t-Test',
-
-    category:
-      'Hypothesis Tests',
+    label: 'Paired Samples t-Test',
+    category: 'Hypothesis Tests',
 
     keywords: [
       'paired',
@@ -418,17 +317,12 @@ const STATISTICAL_METHODS = [
       't test',
     ],
 
-    path:
-      '/analysis?method=hypothesis',
+    path: '/analysis?method=hypothesis',
   },
 
-
   {
-    label:
-      'Mann-Whitney U Test',
-
-    category:
-      'Hypothesis Tests',
+    label: 'Mann-Whitney U Test',
+    category: 'Hypothesis Tests',
 
     keywords: [
       'nonparametric',
@@ -436,17 +330,12 @@ const STATISTICAL_METHODS = [
       'groups',
     ],
 
-    path:
-      '/analysis?method=hypothesis',
+    path: '/analysis?method=hypothesis',
   },
 
-
   {
-    label:
-      'Wilcoxon Signed-Rank Test',
-
-    category:
-      'Hypothesis Tests',
+    label: 'Wilcoxon Signed-Rank Test',
+    category: 'Hypothesis Tests',
 
     keywords: [
       'wilcoxon',
@@ -454,17 +343,12 @@ const STATISTICAL_METHODS = [
       'paired',
     ],
 
-    path:
-      '/analysis?method=hypothesis',
+    path: '/analysis?method=hypothesis',
   },
 
-
   {
-    label:
-      'Chi-Square Test',
-
-    category:
-      'Hypothesis Tests',
+    label: 'Chi-Square Test',
+    category: 'Hypothesis Tests',
 
     keywords: [
       'chi square',
@@ -472,17 +356,12 @@ const STATISTICAL_METHODS = [
       'association',
     ],
 
-    path:
-      '/analysis?method=hypothesis',
+    path: '/analysis?method=hypothesis',
   },
 
-
   {
-    label:
-      'ANOVA',
-
-    category:
-      'Hypothesis Tests',
+    label: 'ANOVA',
+    category: 'Hypothesis Tests',
 
     keywords: [
       'analysis variance',
@@ -490,34 +369,24 @@ const STATISTICAL_METHODS = [
       'means',
     ],
 
-    path:
-      '/analysis?method=hypothesis',
+    path: '/analysis?method=hypothesis',
   },
 
-
   {
-    label:
-      'One-Way ANOVA',
-
-    category:
-      'Hypothesis Tests',
+    label: 'One-Way ANOVA',
+    category: 'Hypothesis Tests',
 
     keywords: [
       'anova',
       'one factor',
     ],
 
-    path:
-      '/analysis?method=hypothesis',
+    path: '/analysis?method=hypothesis',
   },
 
-
   {
-    label:
-      'Kruskal-Wallis Test',
-
-    category:
-      'Hypothesis Tests',
+    label: 'Kruskal-Wallis Test',
+    category: 'Hypothesis Tests',
 
     keywords: [
       'kruskal',
@@ -526,17 +395,12 @@ const STATISTICAL_METHODS = [
       'groups',
     ],
 
-    path:
-      '/analysis?method=hypothesis',
+    path: '/analysis?method=hypothesis',
   },
 
-
   {
-    label:
-      'Friedman Test',
-
-    category:
-      'Hypothesis Tests',
+    label: 'Friedman Test',
+    category: 'Hypothesis Tests',
 
     keywords: [
       'friedman',
@@ -544,8 +408,7 @@ const STATISTICAL_METHODS = [
       'repeated measures',
     ],
 
-    path:
-      '/analysis?method=hypothesis',
+    path: '/analysis?method=hypothesis',
   },
 
 
@@ -554,28 +417,20 @@ const STATISTICAL_METHODS = [
   // ========================================================
 
   {
-    label:
-      'Correlation',
-
-    category:
-      'Correlation',
+    label: 'Correlation',
+    category: 'Correlation',
 
     keywords: [
       'relationship',
       'association',
     ],
 
-    path:
-      '/analysis?method=correlation',
+    path: '/analysis?method=correlation',
   },
 
-
   {
-    label:
-      'Pearson Correlation',
-
-    category:
-      'Correlation',
+    label: 'Pearson Correlation',
+    category: 'Correlation',
 
     keywords: [
       'pearson',
@@ -583,17 +438,12 @@ const STATISTICAL_METHODS = [
       'correlation',
     ],
 
-    path:
-      '/analysis?method=correlation',
+    path: '/analysis?method=correlation',
   },
 
-
   {
-    label:
-      'Spearman Correlation',
-
-    category:
-      'Correlation',
+    label: 'Spearman Correlation',
+    category: 'Correlation',
 
     keywords: [
       'spearman',
@@ -601,17 +451,12 @@ const STATISTICAL_METHODS = [
       'ordinal',
     ],
 
-    path:
-      '/analysis?method=correlation',
+    path: '/analysis?method=correlation',
   },
 
-
   {
-    label:
-      'Kendall Correlation',
-
-    category:
-      'Correlation',
+    label: 'Kendall Correlation',
+    category: 'Correlation',
 
     keywords: [
       'kendall',
@@ -619,25 +464,19 @@ const STATISTICAL_METHODS = [
       'rank',
     ],
 
-    path:
-      '/analysis?method=correlation',
+    path: '/analysis?method=correlation',
   },
 
-
   {
-    label:
-      'Correlation Matrix',
-
-    category:
-      'Correlation',
+    label: 'Correlation Matrix',
+    category: 'Correlation',
 
     keywords: [
       'matrix',
       'correlation',
     ],
 
-    path:
-      '/analysis?method=correlation',
+    path: '/analysis?method=correlation',
   },
 
 
@@ -646,11 +485,8 @@ const STATISTICAL_METHODS = [
   // ========================================================
 
   {
-    label:
-      'Regression',
-
-    category:
-      'Regression',
+    label: 'Regression',
+    category: 'Regression',
 
     keywords: [
       'regression',
@@ -658,51 +494,36 @@ const STATISTICAL_METHODS = [
       'relationship',
     ],
 
-    path:
-      '/analysis?method=regression',
+    path: '/analysis?method=regression',
   },
 
-
   {
-    label:
-      'Linear Regression',
-
-    category:
-      'Regression',
+    label: 'Linear Regression',
+    category: 'Regression',
 
     keywords: [
       'ols',
       'linear model',
     ],
 
-    path:
-      '/analysis?method=regression',
+    path: '/analysis?method=regression',
   },
 
-
   {
-    label:
-      'Multiple Linear Regression',
-
-    category:
-      'Regression',
+    label: 'Multiple Linear Regression',
+    category: 'Regression',
 
     keywords: [
       'multiple regression',
       'predictors',
     ],
 
-    path:
-      '/analysis?method=regression',
+    path: '/analysis?method=regression',
   },
 
-
   {
-    label:
-      'Regression Diagnostics',
-
-    category:
-      'Regression',
+    label: 'Regression Diagnostics',
+    category: 'Regression',
 
     keywords: [
       'vif',
@@ -710,8 +531,7 @@ const STATISTICAL_METHODS = [
       'diagnostics',
     ],
 
-    path:
-      '/analysis?method=regression',
+    path: '/analysis?method=regression',
   },
 
 
@@ -720,11 +540,8 @@ const STATISTICAL_METHODS = [
   // ========================================================
 
   {
-    label:
-      'Predictive Analytics',
-
-    category:
-      'Predictive Analytics',
+    label: 'Predictive Analytics',
+    category: 'Predictive Analytics',
 
     keywords: [
       'future',
@@ -732,17 +549,12 @@ const STATISTICAL_METHODS = [
       'machine learning',
     ],
 
-    path:
-      '/analysis?method=predictive',
+    path: '/analysis?method=predictive',
   },
 
-
   {
-    label:
-      'Decision Tree',
-
-    category:
-      'Predictive Analytics',
+    label: 'Decision Tree',
+    category: 'Predictive Analytics',
 
     keywords: [
       'machine learning',
@@ -750,17 +562,12 @@ const STATISTICAL_METHODS = [
       'prediction',
     ],
 
-    path:
-      '/analysis?method=predictive',
+    path: '/analysis?method=predictive',
   },
 
-
   {
-    label:
-      'Random Forest',
-
-    category:
-      'Predictive Analytics',
+    label: 'Random Forest',
+    category: 'Predictive Analytics',
 
     keywords: [
       'machine learning',
@@ -768,17 +575,12 @@ const STATISTICAL_METHODS = [
       'prediction',
     ],
 
-    path:
-      '/analysis?method=predictive',
+    path: '/analysis?method=predictive',
   },
 
-
   {
-    label:
-      'Gradient Boosting',
-
-    category:
-      'Predictive Analytics',
+    label: 'Gradient Boosting',
+    category: 'Predictive Analytics',
 
     keywords: [
       'boosting',
@@ -786,8 +588,7 @@ const STATISTICAL_METHODS = [
       'prediction',
     ],
 
-    path:
-      '/analysis?method=predictive',
+    path: '/analysis?method=predictive',
   },
 
 
@@ -796,11 +597,8 @@ const STATISTICAL_METHODS = [
   // ========================================================
 
   {
-    label:
-      'ANCOVA',
-
-    category:
-      'ANCOVA',
+    label: 'ANCOVA',
+    category: 'ANCOVA',
 
     keywords: [
       'analysis covariance',
@@ -808,38 +606,29 @@ const STATISTICAL_METHODS = [
       'adjusted means',
     ],
 
-    path:
-      '/analysis?method=ancova',
+    path: '/analysis?method=ancova',
   },
 
-
   {
-    label:
-      'Analysis of Covariance',
-
-    category:
-      'ANCOVA',
+    label: 'Analysis of Covariance',
+    category: 'ANCOVA',
 
     keywords: [
       'ancova',
       'covariate',
     ],
 
-    path:
-      '/analysis?method=ancova',
+    path: '/analysis?method=ancova',
   },
 
 
   // ========================================================
-  // SURVIVAL
+  // SURVIVAL ANALYSIS
   // ========================================================
 
   {
-    label:
-      'Survival Analysis',
-
-    category:
-      'Survival Analysis',
+    label: 'Survival Analysis',
+    category: 'Survival Analysis',
 
     keywords: [
       'survival',
@@ -847,42 +636,31 @@ const STATISTICAL_METHODS = [
       'censoring',
     ],
 
-    path:
-      '/analysis?method=survival',
+    path: '/analysis?method=survival',
   },
 
-
   {
-    label:
-      'Kaplan-Meier Analysis',
-
-    category:
-      'Survival Analysis',
+    label: 'Kaplan-Meier Analysis',
+    category: 'Survival Analysis',
 
     keywords: [
       'kaplan meier',
       'survival',
     ],
 
-    path:
-      '/analysis?method=survival',
+    path: '/analysis?method=survival',
   },
 
-
   {
-    label:
-      'Log-Rank Test',
-
-    category:
-      'Survival Analysis',
+    label: 'Log-Rank Test',
+    category: 'Survival Analysis',
 
     keywords: [
       'log rank',
       'survival groups',
     ],
 
-    path:
-      '/analysis?method=survival',
+    path: '/analysis?method=survival',
   },
 
 
@@ -891,11 +669,8 @@ const STATISTICAL_METHODS = [
   // ========================================================
 
   {
-    label:
-      'EFA / PCA',
-
-    category:
-      'EFA / PCA',
+    label: 'EFA / PCA',
+    category: 'EFA / PCA',
 
     keywords: [
       'factor',
@@ -903,17 +678,12 @@ const STATISTICAL_METHODS = [
       'dimension reduction',
     ],
 
-    path:
-      '/analysis?method=factor',
+    path: '/analysis?method=factor',
   },
 
-
   {
-    label:
-      'Exploratory Factor Analysis',
-
-    category:
-      'EFA / PCA',
+    label: 'Exploratory Factor Analysis',
+    category: 'EFA / PCA',
 
     keywords: [
       'efa',
@@ -921,17 +691,12 @@ const STATISTICAL_METHODS = [
       'latent',
     ],
 
-    path:
-      '/analysis?method=factor',
+    path: '/analysis?method=factor',
   },
 
-
   {
-    label:
-      'Principal Component Analysis',
-
-    category:
-      'EFA / PCA',
+    label: 'Principal Component Analysis',
+    category: 'EFA / PCA',
 
     keywords: [
       'pca',
@@ -939,42 +704,31 @@ const STATISTICAL_METHODS = [
       'dimension reduction',
     ],
 
-    path:
-      '/analysis?method=factor',
+    path: '/analysis?method=factor',
   },
 
-
   {
-    label:
-      'KMO Test',
-
-    category:
-      'EFA / PCA',
+    label: 'KMO Test',
+    category: 'EFA / PCA',
 
     keywords: [
       'kaiser meyer olkin',
       'factorability',
     ],
 
-    path:
-      '/analysis?method=factor',
+    path: '/analysis?method=factor',
   },
 
-
   {
-    label:
-      "Bartlett's Test of Sphericity",
-
-    category:
-      'EFA / PCA',
+    label: "Bartlett's Test of Sphericity",
+    category: 'EFA / PCA',
 
     keywords: [
       'bartlett',
       'factorability',
     ],
 
-    path:
-      '/analysis?method=factor',
+    path: '/analysis?method=factor',
   },
 
 
@@ -983,11 +737,8 @@ const STATISTICAL_METHODS = [
   // ========================================================
 
   {
-    label:
-      'Reliability Analysis',
-
-    category:
-      'Reliability',
+    label: 'Reliability Analysis',
+    category: 'Reliability',
 
     keywords: [
       'reliability',
@@ -995,17 +746,12 @@ const STATISTICAL_METHODS = [
       'questionnaire',
     ],
 
-    path:
-      '/analysis?method=reliability',
+    path: '/analysis?method=reliability',
   },
 
-
   {
-    label:
-      "Cronbach's Alpha",
-
-    category:
-      'Reliability',
+    label: "Cronbach's Alpha",
+    category: 'Reliability',
 
     keywords: [
       'cronbach',
@@ -1013,42 +759,31 @@ const STATISTICAL_METHODS = [
       'internal consistency',
     ],
 
-    path:
-      '/analysis?method=reliability',
+    path: '/analysis?method=reliability',
   },
 
-
   {
-    label:
-      'Item-Total Correlation',
-
-    category:
-      'Reliability',
+    label: 'Item-Total Correlation',
+    category: 'Reliability',
 
     keywords: [
       'reliability',
       'item total',
     ],
 
-    path:
-      '/analysis?method=reliability',
+    path: '/analysis?method=reliability',
   },
 
-
   {
-    label:
-      'Split-Half Reliability',
-
-    category:
-      'Reliability',
+    label: 'Split-Half Reliability',
+    category: 'Reliability',
 
     keywords: [
       'split half',
       'spearman brown',
     ],
 
-    path:
-      '/analysis?method=reliability',
+    path: '/analysis?method=reliability',
   },
 
 
@@ -1057,11 +792,8 @@ const STATISTICAL_METHODS = [
   // ========================================================
 
   {
-    label:
-      'Cluster Analysis',
-
-    category:
-      'Cluster',
+    label: 'Cluster Analysis',
+    category: 'Cluster',
 
     keywords: [
       'clustering',
@@ -1069,17 +801,12 @@ const STATISTICAL_METHODS = [
       'segmentation',
     ],
 
-    path:
-      '/analysis?method=cluster',
+    path: '/analysis?method=cluster',
   },
 
-
   {
-    label:
-      'K-Means Clustering',
-
-    category:
-      'Cluster',
+    label: 'K-Means Clustering',
+    category: 'Cluster',
 
     keywords: [
       'kmeans',
@@ -1087,17 +814,12 @@ const STATISTICAL_METHODS = [
       'segmentation',
     ],
 
-    path:
-      '/analysis?method=cluster',
+    path: '/analysis?method=cluster',
   },
 
-
   {
-    label:
-      'Hierarchical Clustering',
-
-    category:
-      'Cluster',
+    label: 'Hierarchical Clustering',
+    category: 'Cluster',
 
     keywords: [
       'hierarchical',
@@ -1105,25 +827,19 @@ const STATISTICAL_METHODS = [
       'agglomerative',
     ],
 
-    path:
-      '/analysis?method=cluster',
+    path: '/analysis?method=cluster',
   },
 
-
   {
-    label:
-      'Silhouette Analysis',
-
-    category:
-      'Cluster',
+    label: 'Silhouette Analysis',
+    category: 'Cluster',
 
     keywords: [
       'silhouette',
       'cluster quality',
     ],
 
-    path:
-      '/analysis?method=cluster',
+    path: '/analysis?method=cluster',
   },
 
 
@@ -1132,11 +848,8 @@ const STATISTICAL_METHODS = [
   // ========================================================
 
   {
-    label:
-      'Measurement System Analysis',
-
-    category:
-      'MSA',
+    label: 'Measurement System Analysis',
+    category: 'MSA',
 
     keywords: [
       'msa',
@@ -1145,17 +858,12 @@ const STATISTICAL_METHODS = [
       'gauge',
     ],
 
-    path:
-      '/analysis?method=msa',
+    path: '/analysis?method=msa',
   },
 
-
   {
-    label:
-      'Gage R&R',
-
-    category:
-      'MSA',
+    label: 'Gage R&R',
+    category: 'MSA',
 
     keywords: [
       'gauge',
@@ -1163,8 +871,7 @@ const STATISTICAL_METHODS = [
       'reproducibility',
     ],
 
-    path:
-      '/analysis?method=msa',
+    path: '/analysis?method=msa',
   },
 
 
@@ -1173,11 +880,8 @@ const STATISTICAL_METHODS = [
   // ========================================================
 
   {
-    label:
-      'Process Capability',
-
-    category:
-      'Process Capability',
+    label: 'Process Capability',
+    category: 'Process Capability',
 
     keywords: [
       'cp',
@@ -1186,40 +890,29 @@ const STATISTICAL_METHODS = [
       'process',
     ],
 
-    path:
-      '/analysis?method=capability',
+    path: '/analysis?method=capability',
   },
 
-
   {
-    label:
-      'Cp',
-
-    category:
-      'Process Capability',
+    label: 'Cp',
+    category: 'Process Capability',
 
     keywords: [
       'process capability',
     ],
 
-    path:
-      '/analysis?method=capability',
+    path: '/analysis?method=capability',
   },
 
-
   {
-    label:
-      'Cpk',
-
-    category:
-      'Process Capability',
+    label: 'Cpk',
+    category: 'Process Capability',
 
     keywords: [
       'process capability index',
     ],
 
-    path:
-      '/analysis?method=capability',
+    path: '/analysis?method=capability',
   },
 
 
@@ -1228,11 +921,8 @@ const STATISTICAL_METHODS = [
   // ========================================================
 
   {
-    label:
-      'Statistical Process Control',
-
-    category:
-      'SPC',
+    label: 'Statistical Process Control',
+    category: 'SPC',
 
     keywords: [
       'spc',
@@ -1240,38 +930,29 @@ const STATISTICAL_METHODS = [
       'process monitoring',
     ],
 
-    path:
-      '/analysis?method=spc',
+    path: '/analysis?method=spc',
   },
 
-
   {
-    label:
-      'Control Charts',
-
-    category:
-      'SPC',
+    label: 'Control Charts',
+    category: 'SPC',
 
     keywords: [
       'spc',
       'control limits',
     ],
 
-    path:
-      '/analysis?method=spc',
+    path: '/analysis?method=spc',
   },
 
 
   // ========================================================
-  // DOE
+  // DESIGN OF EXPERIMENTS
   // ========================================================
 
   {
-    label:
-      'Design of Experiments',
-
-    category:
-      'DoE',
+    label: 'Design of Experiments',
+    category: 'DoE',
 
     keywords: [
       'doe',
@@ -1279,17 +960,12 @@ const STATISTICAL_METHODS = [
       'factorial',
     ],
 
-    path:
-      '/analysis?method=doe',
+    path: '/analysis?method=doe',
   },
 
-
   {
-    label:
-      'Factorial Design',
-
-    category:
-      'DoE',
+    label: 'Factorial Design',
+    category: 'DoE',
 
     keywords: [
       'doe',
@@ -1297,21 +973,17 @@ const STATISTICAL_METHODS = [
       'experiment',
     ],
 
-    path:
-      '/analysis?method=doe',
+    path: '/analysis?method=doe',
   },
 
 
   // ========================================================
-  // VISUALIZATIONS
+  // VISUALIZATION
   // ========================================================
 
   {
-    label:
-      'Charts and Visualization',
-
-    category:
-      'Visualization',
+    label: 'Charts and Visualization',
+    category: 'Visualization',
 
     keywords: [
       'graph',
@@ -1319,51 +991,36 @@ const STATISTICAL_METHODS = [
       'plot',
     ],
 
-    path:
-      '/visualizations',
+    path: '/visualizations',
   },
 
-
   {
-    label:
-      'Bar Chart',
-
-    category:
-      'Visualization',
+    label: 'Bar Chart',
+    category: 'Visualization',
 
     keywords: [
       'bar',
       'chart',
     ],
 
-    path:
-      '/visualizations',
+    path: '/visualizations',
   },
 
-
   {
-    label:
-      'Histogram',
-
-    category:
-      'Visualization',
+    label: 'Histogram',
+    category: 'Visualization',
 
     keywords: [
       'distribution',
       'histogram',
     ],
 
-    path:
-      '/visualizations',
+    path: '/visualizations',
   },
 
-
   {
-    label:
-      'Scatter Plot',
-
-    category:
-      'Visualization',
+    label: 'Scatter Plot',
+    category: 'Visualization',
 
     keywords: [
       'scatter',
@@ -1371,17 +1028,12 @@ const STATISTICAL_METHODS = [
       'plot',
     ],
 
-    path:
-      '/visualizations',
+    path: '/visualizations',
   },
 
-
   {
-    label:
-      'Line Chart',
-
-    category:
-      'Visualization',
+    label: 'Line Chart',
+    category: 'Visualization',
 
     keywords: [
       'line',
@@ -1389,17 +1041,12 @@ const STATISTICAL_METHODS = [
       'chart',
     ],
 
-    path:
-      '/visualizations',
+    path: '/visualizations',
   },
 
-
   {
-    label:
-      'Boxplot',
-
-    category:
-      'Visualization',
+    label: 'Boxplot',
+    category: 'Visualization',
 
     keywords: [
       'box plot',
@@ -1407,34 +1054,24 @@ const STATISTICAL_METHODS = [
       'distribution',
     ],
 
-    path:
-      '/visualizations',
+    path: '/visualizations',
   },
 
-
   {
-    label:
-      'Violin Plot',
-
-    category:
-      'Visualization',
+    label: 'Violin Plot',
+    category: 'Visualization',
 
     keywords: [
       'violin',
       'distribution',
     ],
 
-    path:
-      '/visualizations',
+    path: '/visualizations',
   },
 
-
   {
-    label:
-      'Q-Q Plot',
-
-    category:
-      'Visualization',
+    label: 'Q-Q Plot',
+    category: 'Visualization',
 
     keywords: [
       'qq',
@@ -1442,8 +1079,7 @@ const STATISTICAL_METHODS = [
       'normality',
     ],
 
-    path:
-      '/visualizations',
+    path: '/visualizations',
   },
 
 ]
@@ -1458,8 +1094,7 @@ function normalizeSearchText(
 ) {
 
   return String(
-    value ||
-    ''
+    value || ''
   )
     .trim()
     .toLowerCase()
@@ -1506,7 +1141,6 @@ function getMatchScore(
   if (
     !normalizedQuery
   ) {
-
     return 1
   }
 
@@ -1515,7 +1149,6 @@ function getMatchScore(
     label ===
     normalizedQuery
   ) {
-
     return 100
   }
 
@@ -1525,7 +1158,6 @@ function getMatchScore(
       normalizedQuery
     )
   ) {
-
     return 80
   }
 
@@ -1535,7 +1167,6 @@ function getMatchScore(
       normalizedQuery
     )
   ) {
-
     return 60
   }
 
@@ -1545,7 +1176,6 @@ function getMatchScore(
       normalizedQuery
     )
   ) {
-
     return 40
   }
 
@@ -1555,7 +1185,6 @@ function getMatchScore(
       normalizedQuery
     )
   ) {
-
     return 30
   }
 
@@ -1609,14 +1238,15 @@ export default function StatisticsCalculatorLanding() {
     useLocation()
 
 
-  const isDashboard =
-    location.pathname ===
-    '/dashboard'
-
   const {
     user,
     logout,
   } = useAuth()
+
+
+  const isDashboard =
+    location.pathname ===
+    '/dashboard'
 
 
   const [
@@ -1629,6 +1259,77 @@ export default function StatisticsCalculatorLanding() {
     searchFocused,
     setSearchFocused,
   ] = useState(false)
+
+
+  // ========================================================
+  // AUTHENTICATION GATE
+  // ========================================================
+
+  const requireAuthentication =
+    (
+      authenticatedPath =
+        '/dashboard'
+    ) => {
+
+      if (
+        !user
+      ) {
+
+        navigate(
+          '/login',
+          {
+            state: {
+              from:
+                '/dashboard',
+
+              intendedPath:
+                authenticatedPath,
+            },
+          }
+        )
+
+        return false
+      }
+
+
+      navigate(
+        authenticatedPath
+      )
+
+
+      return true
+    }
+
+
+  // ========================================================
+  // START NOW
+  // ========================================================
+
+  const handleStartNow =
+    () => {
+
+      if (
+        !user
+      ) {
+
+        navigate(
+          '/login',
+          {
+            state: {
+              from:
+                '/dashboard',
+            },
+          }
+        )
+
+        return
+      }
+
+
+      navigate(
+        '/dashboard'
+      )
+    }
 
 
   // ========================================================
@@ -1698,7 +1399,7 @@ export default function StatisticsCalculatorLanding() {
 
 
   // ========================================================
-  // SUGGESTIONS
+  // SEARCH SUGGESTIONS
   // ========================================================
 
   const suggestions =
@@ -1708,7 +1409,6 @@ export default function StatisticsCalculatorLanding() {
         if (
           !query.trim()
         ) {
-
           return []
         }
 
@@ -1741,7 +1441,6 @@ export default function StatisticsCalculatorLanding() {
       if (
         !item
       ) {
-
         return
       }
 
@@ -1749,6 +1448,30 @@ export default function StatisticsCalculatorLanding() {
       setSearchFocused(
         false
       )
+
+
+      if (
+        !user
+      ) {
+
+        navigate(
+          '/login',
+          {
+            state: {
+              from:
+                '/dashboard',
+
+              intendedPath:
+                item.path,
+
+              selectedMethod:
+                item.label,
+            },
+          }
+        )
+
+        return
+      }
 
 
       navigate(
@@ -1767,6 +1490,16 @@ export default function StatisticsCalculatorLanding() {
     ) => {
 
       event.preventDefault()
+
+
+      if (
+        !query.trim()
+      ) {
+
+        handleStartNow()
+
+        return
+      }
 
 
       if (
@@ -1823,7 +1556,7 @@ export default function StatisticsCalculatorLanding() {
 
 
   // ========================================================
-  // SCROLL TO SEARCH
+  // FOCUS SEARCH
   // ========================================================
 
   const focusSearch =
@@ -1838,7 +1571,6 @@ export default function StatisticsCalculatorLanding() {
       if (
         !search
       ) {
-
         return
       }
 
@@ -1868,111 +1600,72 @@ export default function StatisticsCalculatorLanding() {
   // RENDER
   // ========================================================
 
-return (
+  return (
 
-  <div
-    className={
-      isDashboard
-        ?
-        'statistics-calculator-page dashboard-video-mode'
-        :
-        'statistics-calculator-page'
-    }
-  >
+    <div
+      className={
+        isDashboard
+          ?
+          'statistics-calculator-page dashboard-video-mode'
+          :
+          'statistics-calculator-page'
+      }
+    >
 
-
-    {/* ==================================================
-        DASHBOARD VIDEO BACKGROUND
-        ================================================== */}
-
-    {isDashboard && (
-
-      <div
-        className="dashboard-video-background"
-        aria-hidden="true"
-      >
-
-        <video
-          className="dashboard-background-video"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-        >
-
-          <source
-            src="/videos/dashboard-bg.mp4"
-            type="video/mp4"
-          />
-
-        </video>
-
-
-        <div className="dashboard-video-overlay" />
-
-      </div>
-
-    )}
-
-
-    <div className="dashboard-video-content">
 
       {/* ==================================================
-          HEADER
+          DASHBOARD VIDEO BACKGROUND
           ================================================== */}
 
-      <header className="statistics-calculator-header">
+      {isDashboard && (
 
-
-        {/* LOGO */}
-
-        <button
-          type="button"
-
-          className="statistics-calculator-brand"
-
-          onClick={() =>
-            navigate(
-              user
-                ?
-                '/dashboard'
-                :
-                '/'
-            )
-          }
+        <div
+          className="dashboard-video-background"
+          aria-hidden="true"
         >
 
-          <BarChart3
-            size={38}
+          <video
+            className="dashboard-background-video"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+          >
+
+            <source
+              src="/videos/dashboard-bg.mp4"
+              type="video/mp4"
+            />
+
+          </video>
+
+
+          <div
+            className="dashboard-video-overlay"
           />
 
+        </div>
 
-          <div>
-
-            <strong>
-              SSAS
-            </strong>
+      )}
 
 
-            <span>
-              Smart Statistical Analysis System
-            </span>
-
-          </div>
-
-        </button>
+      <div className="dashboard-video-content">
 
 
-        {/* NAVIGATION */}
+        {/* ==================================================
+            HEADER
+            ================================================== */}
 
-        <nav className="statistics-calculator-navigation">
+        <header className="statistics-calculator-header">
 
+
+          {/* LOGO */}
 
           <button
             type="button"
 
-            className="active"
+            className="statistics-calculator-brand"
 
             onClick={() =>
               navigate(
@@ -1985,125 +1678,73 @@ return (
             }
           >
 
-            Statistics Calculator
+            <BarChart3
+              size={38}
+            />
+
+
+            <div>
+
+              <strong>
+                SSAS
+              </strong>
+
+
+              <span>
+                Smart Statistical Analysis System
+              </span>
+
+            </div>
 
           </button>
 
 
-          {user && (
+          {/* NAVIGATION */}
+
+          <nav className="statistics-calculator-navigation">
+
 
             <button
               type="button"
 
+              className="active"
+
               onClick={() =>
                 navigate(
-                  '/datasets'
+                  user
+                    ?
+                    '/dashboard'
+                    :
+                    '/'
                 )
               }
             >
 
-       {user && (
-
-  <button
-    type="button"
-
-    onClick={() =>
-      navigate(
-        '/survey'
-      )
-    }
-  >
-
-    Survey
-
-  </button>
-
-)} 
-             Datasets
+              Statistics Calculator
 
             </button>
 
-          )}
+
+            {user && (
+
+              <button
+                type="button"
+
+                onClick={() =>
+                  navigate(
+                    '/survey'
+                  )
+                }
+              >
+
+                Survey
+
+              </button>
+
+            )}
 
 
-          <button
-            type="button"
-
-            onClick={() =>
-              navigate(
-                '/analysis'
-              )
-            }
-          >
-
-            Analysis
-
-          </button>
-
-
-          <button
-            type="button"
-
-            onClick={() =>
-              navigate(
-                '/visualizations'
-              )
-            }
-          >
-
-            Visualization
-
-          </button>
-
-
-          {user && (
-
-            <button
-              type="button"
-
-              onClick={() =>
-                navigate(
-                  '/reports'
-                )
-              }
-            >
-
-              Reports
-
-            </button>
-
-          )}
-
-
-          {user && (
-
-            <button
-              type="button"
-
-              onClick={() =>
-                navigate(
-                  '/notifications'
-                )
-              }
-            >
-
-              Notifications
-
-            </button>
-
-          )}
-
-        </nav>
-
-
-        {/* USER / LOGIN */}
-
-        <div className="statistics-calculator-header-actions">
-
-
-          {user ? (
-
-            <>
+            {user && (
 
               <button
                 type="button"
@@ -2115,704 +1756,797 @@ return (
                 }
               >
 
-                <User
-                  size={18}
-                />
-
-                {
-                  user.username
-                  ||
-                  'Workspace'
-                }
+                Datasets
 
               </button>
 
+            )}
 
-              <button
-                type="button"
-
-                onClick={
-                  handleLogout
-                }
-              >
-
-                <LogOut
-                  size={18}
-                />
-
-                Sign out
-
-              </button>
-
-            </>
-
-          ) : (
 
             <button
               type="button"
 
               onClick={() =>
-                navigate(
-                  '/login'
+                requireAuthentication(
+                  '/analysis'
                 )
               }
             >
 
-              Login
+              Analysis
 
             </button>
 
-          )}
+
+            <button
+              type="button"
+
+              onClick={() =>
+                requireAuthentication(
+                  '/visualizations'
+                )
+              }
+            >
+
+              Visualization
+
+            </button>
 
 
-          <Search
-            size={22}
+            {user && (
 
-            onClick={
-              focusSearch
-            }
+              <button
+                type="button"
 
-            style={{
-              cursor:
-                'pointer',
-            }}
-          />
+                onClick={() =>
+                  navigate(
+                    '/reports'
+                  )
+                }
+              >
 
-        </div>
+                Reports
 
-      </header>
+              </button>
 
-
-      {/* ==================================================
-          HERO
-          ================================================== */}
-
-      <section className="statistics-calculator-hero">
+            )}
 
 
-        <div className="statistics-calculator-hero-content">
+            {user && (
+
+              <button
+                type="button"
+
+                onClick={() =>
+                  navigate(
+                    '/notifications'
+                  )
+                }
+              >
+
+                Notifications
+
+              </button>
+
+            )}
+
+          </nav>
 
 
-          <span className="statistics-calculator-eyebrow">
+          {/* USER / LOGIN */}
 
-            SMART STATISTICAL ANALYSIS SYSTEM
-
-          </span>
+          <div className="statistics-calculator-header-actions">
 
 
-          <h1>
+            {user ? (
 
-            Statistics Calculator
+              <>
 
-          </h1>
+                <button
+                  type="button"
 
+                  onClick={() =>
+                    navigate(
+                      '/dashboard'
+                    )
+                  }
+                >
 
-          <p>
+                  <User
+                    size={18}
+                  />
 
-            Select or search for a statistical method
-            and SSAS will take you directly to the
-            appropriate analysis workflow.
+                  {
+                    user.username
+                    ||
+                    'Workspace'
+                  }
 
-          </p>
-
-
-          <button
-            type="button"
-
-            className="statistics-start-button"
-
-            onClick={
-              focusSearch
-            }
-          >
-
-            Start now
+                </button>
 
 
-            <ArrowRight
-              size={18}
+                <button
+                  type="button"
+
+                  onClick={
+                    handleLogout
+                  }
+                >
+
+                  <LogOut
+                    size={18}
+                  />
+
+                  Sign out
+
+                </button>
+
+              </>
+
+            ) : (
+
+              <button
+                type="button"
+
+                onClick={() =>
+                  navigate(
+                    '/login',
+                    {
+                      state: {
+                        from:
+                          '/dashboard',
+                      },
+                    }
+                  )
+                }
+              >
+
+                Login
+
+              </button>
+
+            )}
+
+
+            <Search
+              size={22}
+
+              onClick={
+                focusSearch
+              }
+
+              style={{
+                cursor:
+                  'pointer',
+              }}
             />
 
-          </button>
+          </div>
 
-        </div>
-
-      </section>
+        </header>
 
 
-      {/* ==================================================
-          SEARCH / METHOD DISCOVERY
-          ================================================== */}
+        {/* ==================================================
+            HERO
+            ================================================== */}
 
-      <main className="statistics-calculator-content">
-
-
-        <section className="statistics-method-discovery">
+        <section className="statistics-calculator-hero">
 
 
-          {/* HEADING */}
-
-          <div className="statistics-method-heading">
+          <div className="statistics-calculator-hero-content">
 
 
-            <span>
+            <span className="statistics-calculator-eyebrow">
 
-              FIND AN ANALYSIS
+              SMART STATISTICAL ANALYSIS SYSTEM
 
             </span>
 
 
-            <h2>
+            <h1>
 
-              What do you want to calculate?
+              Statistics Calculator
 
-            </h2>
+            </h1>
 
 
             <p>
 
-              Search by statistical method,
-              test name, purpose or keyword.
+              Select or search for a statistical method
+              and SSAS will take you directly to the
+              appropriate analysis workflow.
 
             </p>
 
-          </div>
 
+            <button
+              type="button"
 
-          {/* =================================================
-              SEARCH
-              ================================================= */}
+              className="statistics-start-button"
 
-          <div className="statistics-search-wrapper">
-
-
-            <form
-              className={
-                searchFocused
-                  ?
-                  'statistics-search-box focused'
-                  :
-                  'statistics-search-box'
-              }
-
-              onSubmit={
-                handleSubmit
+              onClick={
+                handleStartNow
               }
             >
 
+              Start now
 
-              <Search
-                size={22}
+
+              <ArrowRight
+                size={18}
               />
 
-
-              <input
-                id="statistics-method-search"
-
-                type="text"
-
-                autoComplete="off"
-
-                placeholder="What do you want to calculate?"
-
-                value={
-                  query
-                }
-
-                onFocus={() =>
-                  setSearchFocused(
-                    true
-                  )
-                }
-
-                onChange={
-                  (
-                    event
-                  ) =>
-                    setQuery(
-                      event
-                        .target
-                        .value
-                    )
-                }
-              />
-
-
-              {query && (
-
-                <button
-                  type="button"
-
-                  className="statistics-search-clear"
-
-                  aria-label="Clear search"
-
-                  onClick={
-                    clearSearch
-                  }
-                >
-
-                  <X
-                    size={18}
-                  />
-
-                </button>
-
-              )}
-
-            </form>
-
-
-            {/* =================================================
-                LIVE SEARCH SUGGESTIONS
-                ================================================= */}
-
-            {
-              searchFocused
-              &&
-              query.trim()
-              &&
-              (
-
-                <div className="statistics-search-suggestions">
-
-
-                  {
-                    suggestions.length
-                    >
-                    0
-                      ?
-                      (
-
-                        suggestions.map(
-                          (
-                            item,
-                            index
-                          ) => (
-
-                            <button
-                              key={
-                                `${
-                                  item.label
-                                }-${
-                                  index
-                                }`
-                              }
-
-                              type="button"
-
-                              onMouseDown={
-                                (
-                                  event
-                                ) => {
-
-                                  event.preventDefault()
-
-
-                                  openMethod(
-                                    item
-                                  )
-                                }
-                              }
-                            >
-
-
-                              <div>
-
-                                <strong>
-
-                                  {
-                                    item.label
-                                  }
-
-                                </strong>
-
-
-                                <span>
-
-                                  {
-                                    item.category
-                                  }
-
-                                </span>
-
-                              </div>
-
-
-                              <ArrowRight
-                                size={16}
-                              />
-
-                            </button>
-
-                          )
-                        )
-
-                      )
-                      :
-                      (
-
-                        <div className="statistics-search-no-suggestion">
-
-                          No statistical method matches
-                          &quot;{query}&quot;.
-
-                        </div>
-
-                      )
-                  }
-
-                </div>
-
-              )
-            }
+            </button>
 
           </div>
 
+        </section>
 
-          {/* =================================================
-              FILTER STATUS
-              ================================================= */}
 
-          {query.trim() && (
+        {/* ==================================================
+            SEARCH / METHOD DISCOVERY
+            ================================================== */}
 
-            <div className="statistics-filter-status">
+        <main className="statistics-calculator-content">
+
+
+          <section className="statistics-method-discovery">
+
+
+            {/* HEADING */}
+
+            <div className="statistics-method-heading">
 
 
               <span>
 
-
-                {
-                  filteredMethods.length
-                }
-
-
-                {' '}
-
-
-                result
-
-
-                {
-                  filteredMethods.length
-                  ===
-                  1
-                    ?
-                    ''
-                    :
-                    's'
-                }
-
-
-                {' '}
-
-
-                for
-
-
-                {' '}
-
-
-                <strong>
-
-                  &quot;{query}&quot;
-
-                </strong>
-
+                FIND AN ANALYSIS
 
               </span>
 
+
+              <h2>
+
+                What do you want to calculate?
+
+              </h2>
+
+
+              <p>
+
+                Search by statistical method,
+                test name, purpose or keyword.
+
+              </p>
+
             </div>
 
-          )}
+
+            {/* =================================================
+                SEARCH
+                ================================================= */}
+
+            <div className="statistics-search-wrapper">
 
 
-          {/* =================================================
-              METHOD BUTTONS
-              ================================================= */}
+              <form
+                className={
+                  searchFocused
+                    ?
+                    'statistics-search-box focused'
+                    :
+                    'statistics-search-box'
+                }
 
-          <div className="statistics-method-chip-container">
-
-
-            {
-              filteredMethods.length
+                onSubmit={
+                  handleSubmit
+                }
               >
-              0
-                ?
-                (
 
-                  filteredMethods.map(
-                    (
-                      item,
-                      index
-                    ) => (
 
-                      <button
-                        key={
-                          `${
-                            item.label
-                          }-${
-                            index
-                          }`
-                        }
+                <Search
+                  size={22}
+                />
 
-                        type="button"
 
-                        className="statistics-method-chip"
+                <input
+                  id="statistics-method-search"
 
-                        title={
-                          item.category
-                        }
+                  type="text"
 
-                        onClick={() =>
-                          openMethod(
-                            item
-                          )
-                        }
-                      >
+                  autoComplete="off"
 
-                        {
-                          item.label
-                        }
+                  placeholder="What do you want to calculate?"
 
-                      </button>
+                  value={
+                    query
+                  }
 
+                  onFocus={() =>
+                    setSearchFocused(
+                      true
                     )
-                  )
+                  }
 
-                )
-                :
-                (
+                  onChange={
+                    (
+                      event
+                    ) =>
+                      setQuery(
+                        event
+                          .target
+                          .value
+                      )
+                  }
+                />
 
-                  <div className="statistics-empty-results">
 
+                {query && (
 
-                    <Search
-                      size={32}
+                  <button
+                    type="button"
+
+                    className="statistics-search-clear"
+
+                    aria-label="Clear search"
+
+                    onClick={
+                      clearSearch
+                    }
+                  >
+
+                    <X
+                      size={18}
                     />
 
+                  </button>
 
-                    <h3>
+                )}
 
-                      No matching analysis found
-
-                    </h3>
-
-
-                    <p>
-
-                      Try another keyword such as
-                      correlation, ANOVA, regression,
-                      PCA, reliability or cluster.
-
-                    </p>
+              </form>
 
 
-                    <button
-                      type="button"
+              {/* =================================================
+                  LIVE SEARCH SUGGESTIONS
+                  ================================================= */}
 
-                      onClick={
-                        clearSearch
-                      }
-                    >
+              {
+                searchFocused
+                &&
+                query.trim()
+                &&
+                (
 
-                      Clear Search
+                  <div className="statistics-search-suggestions">
 
-                    </button>
+
+                    {
+                      suggestions.length
+                      >
+                      0
+                        ?
+                        (
+
+                          suggestions.map(
+                            (
+                              item,
+                              index
+                            ) => (
+
+                              <button
+                                key={
+                                  `${
+                                    item.label
+                                  }-${
+                                    index
+                                  }`
+                                }
+
+                                type="button"
+
+                                onMouseDown={
+                                  (
+                                    event
+                                  ) => {
+
+                                    event.preventDefault()
+
+
+                                    openMethod(
+                                      item
+                                    )
+                                  }
+                                }
+                              >
+
+
+                                <div>
+
+                                  <strong>
+
+                                    {
+                                      item.label
+                                    }
+
+                                  </strong>
+
+
+                                  <span>
+
+                                    {
+                                      item.category
+                                    }
+
+                                  </span>
+
+                                </div>
+
+
+                                <ArrowRight
+                                  size={16}
+                                />
+
+                              </button>
+
+                            )
+                          )
+
+                        )
+                        :
+                        (
+
+                          <div className="statistics-search-no-suggestion">
+
+                            No statistical method matches
+                            &quot;{query}&quot;.
+
+                          </div>
+
+                        )
+                    }
 
                   </div>
 
                 )
-            }
+              }
 
-          </div>
-
-
-          {/* =================================================
-              AUTHENTICATED QUICK ACCESS
-              ================================================= */}
-
-          {user && (
-
-            <section className="statistics-workspace-shortcuts">
+            </div>
 
 
-              <div className="statistics-method-heading">
+            {/* =================================================
+                FILTER STATUS
+                ================================================= */}
+
+            {query.trim() && (
+
+              <div className="statistics-filter-status">
 
 
                 <span>
 
-                  YOUR WORKSPACE
+                  {
+                    filteredMethods.length
+                  }
+
+                  {' '}
+
+                  result
+
+                  {
+                    filteredMethods.length
+                    ===
+                    1
+                      ?
+                      ''
+                      :
+                      's'
+                  }
+
+                  {' '}
+
+                  for
+
+                  {' '}
+
+                  <strong>
+
+                    &quot;{query}&quot;
+
+                  </strong>
 
                 </span>
 
-
-                <h2>
-
-                  Continue working with SSAS
-
-                </h2>
-
-
-                <p>
-
-                  Access your datasets, analysis,
-                  visualizations and reports.
-
-                </p>
-
               </div>
 
+            )}
 
-              <div className="statistics-workspace-grid">
+
+            {/* =================================================
+                METHOD BUTTONS
+                ================================================= */}
+
+            <div className="statistics-method-chip-container">
 
 
-                <button
-                  type="button"
-
-                  onClick={() =>
-                    navigate(
-                      '/datasets'
-                    )
-                  }
+              {
+                filteredMethods.length
                 >
+                0
+                  ?
+                  (
 
-                  <Database
-                    size={24}
-                  />
+                    filteredMethods.map(
+                      (
+                        item,
+                        index
+                      ) => (
 
+                        <button
+                          key={
+                            `${
+                              item.label
+                            }-${
+                              index
+                            }`
+                          }
 
-                  <div>
+                          type="button"
 
-                    <strong>
-                      Datasets
-                    </strong>
+                          className="statistics-method-chip"
 
+                          title={
+                            item.category
+                          }
 
-                    <span>
+                          onClick={() =>
+                            openMethod(
+                              item
+                            )
+                          }
+                        >
 
-                      Upload and manage datasets.
+                          {
+                            item.label
+                          }
 
-                    </span>
+                        </button>
 
-                  </div>
-
-                </button>
-
-
-                <button
-                  type="button"
-
-                  onClick={() =>
-                    navigate(
-                      '/analysis'
+                      )
                     )
-                  }
-                >
 
-                  <BarChart3
-                    size={24}
-                  />
+                  )
+                  :
+                  (
 
-
-                  <div>
-
-                    <strong>
-                      Statistical Analysis
-                    </strong>
+                    <div className="statistics-empty-results">
 
 
-                    <span>
-
-                      Run statistical methods.
-
-                    </span>
-
-                  </div>
-
-                </button>
+                      <Search
+                        size={32}
+                      />
 
 
-                <button
-                  type="button"
+                      <h3>
 
-                  onClick={() =>
-                    navigate(
-                      '/visualizations'
-                    )
-                  }
-                >
+                        No matching analysis found
 
-                  <BarChart3
-                    size={24}
-                  />
+                      </h3>
 
 
-                  <div>
+                      <p>
 
-                    <strong>
-                      Visualizations
-                    </strong>
+                        Try another keyword such as
+                        correlation, ANOVA, regression,
+                        PCA, reliability or cluster.
 
-
-                    <span>
-
-                      Create charts and plots.
-
-                    </span>
-
-                  </div>
-
-                </button>
+                      </p>
 
 
-                <button
-                  type="button"
+                      <button
+                        type="button"
 
-                  onClick={() =>
-                    navigate(
-                      '/reports'
-                    )
-                  }
-                >
+                        onClick={
+                          clearSearch
+                        }
+                      >
 
-                  <FileText
-                    size={24}
-                  />
+                        Clear Search
 
+                      </button>
 
-                  <div>
+                    </div>
 
-                    <strong>
-                      Reports
-                    </strong>
+                  )
+              }
+
+            </div>
 
 
-                    <span>
+            {/* =================================================
+                AUTHENTICATED QUICK ACCESS
+                ================================================= */}
 
-                      Review generated reports.
+            {user && (
 
-                    </span>
+              <section className="statistics-workspace-shortcuts">
 
-                  </div>
 
-                </button>
+                <div className="statistics-method-heading">
 
-              </div>
 
-            </section>
+                  <span>
 
-          )}
+                    YOUR WORKSPACE
 
-        </section>
+                  </span>
 
-      </main>
+
+                  <h2>
+
+                    Continue working with SSAS
+
+                  </h2>
+
+
+                  <p>
+
+                    Access your datasets, analysis,
+                    visualizations and reports.
+
+                  </p>
+
+                </div>
+
+
+                <div className="statistics-workspace-grid">
+
+
+                  <button
+                    type="button"
+
+                    onClick={() =>
+                      navigate(
+                        '/datasets'
+                      )
+                    }
+                  >
+
+                    <Database
+                      size={24}
+                    />
+
+
+                    <div>
+
+                      <strong>
+                        Datasets
+                      </strong>
+
+
+                      <span>
+
+                        Upload and manage datasets.
+
+                      </span>
+
+                    </div>
+
+                  </button>
+
+
+                  <button
+                    type="button"
+
+                    onClick={() =>
+                      navigate(
+                        '/analysis'
+                      )
+                    }
+                  >
+
+                    <BarChart3
+                      size={24}
+                    />
+
+
+                    <div>
+
+                      <strong>
+                        Statistical Analysis
+                      </strong>
+
+
+                      <span>
+
+                        Run statistical methods.
+
+                      </span>
+
+                    </div>
+
+                  </button>
+
+
+                  <button
+                    type="button"
+
+                    onClick={() =>
+                      navigate(
+                        '/visualizations'
+                      )
+                    }
+                  >
+
+                    <BarChart3
+                      size={24}
+                    />
+
+
+                    <div>
+
+                      <strong>
+                        Visualizations
+                      </strong>
+
+
+                      <span>
+
+                        Create charts and plots.
+
+                      </span>
+
+                    </div>
+
+                  </button>
+
+
+                  <button
+                    type="button"
+
+                    onClick={() =>
+                      navigate(
+                        '/reports'
+                      )
+                    }
+                  >
+
+                    <FileText
+                      size={24}
+                    />
+
+
+                    <div>
+
+                      <strong>
+                        Reports
+                      </strong>
+
+
+                      <span>
+
+                        Review generated reports.
+
+                      </span>
+
+                    </div>
+
+                  </button>
+
+                </div>
+
+              </section>
+
+            )}
+
+          </section>
+
+        </main>
+
+
+      </div>
 
 
     </div>
-
-
-  </div>
 
   )
 }
