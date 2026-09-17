@@ -1,11 +1,10 @@
 import {
   BarChart3,
-  Bell,
-  Brain,
   ClipboardList,
   Database,
   FileText,
   LogOut,
+  PieChart,
   Search,
   User,
 } from 'lucide-react'
@@ -15,380 +14,142 @@ import {
   useNavigate,
 } from 'react-router-dom'
 
-import {
-  useAuth,
-} from '../context/AuthContext'
-
+import { useAuth } from '../context/AuthContext'
 import './AppShell.css'
 
-
-// ==========================================================
-// NAVIGATION
-// ==========================================================
-
 const NAVIGATION_ITEMS = [
-
   {
-    label:
-      'Statistics Calculator',
-
-    path:
-      '/dashboard',
-
-    icon:
-      BarChart3,
+    label: 'Statistics Calculator',
+    path: '/dashboard',
+    icon: BarChart3,
   },
-
   {
-    label:
-      'Survey',
-
-    path:
-      '/survey',
-
-    icon:
-      ClipboardList,
+    label: 'Survey',
+    path: '/survey',
+    icon: ClipboardList,
   },
-
   {
-    label:
-      'Datasets',
-
-    path:
-      '/datasets',
-
-    icon:
-      Database,
+    label: 'Datasets',
+    path: '/datasets',
+    icon: Database,
   },
-
   {
-    label:
-      'Analysis',
-
-    path:
-      '/analysis',
-
-    icon:
-      BarChart3,
+    label: 'Analysis',
+    path: '/analysis',
+    icon: BarChart3,
   },
-
   {
-    label:
-      'AI / ML',
-
-    path:
-      '/ml',
-
-    icon:
-      Brain,
+    label: 'Visualization',
+    path: '/visualizations',
+    icon: PieChart,
   },
-
   {
-    label:
-      'Visualization',
-
-    path:
-      '/visualizations',
-
-    icon:
-      BarChart3,
+    label: 'Reports',
+    path: '/reports',
+    icon: FileText,
   },
-
-  {
-    label:
-      'Reports',
-
-    path:
-      '/reports',
-
-    icon:
-      FileText,
-  },
-
-  {
-    label:
-      'Notifications',
-
-    path:
-      '/notifications',
-
-    icon:
-      Bell,
-  },
-
 ]
 
+export default function AppShell({ children }) {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { user, logout } = useAuth()
 
-// ==========================================================
-// APP SHELL
-// ==========================================================
-
-export default function AppShell({
-  children,
-}) {
-
-  const navigate =
-    useNavigate()
-
-
-  const location =
-    useLocation()
-
-
-  const {
-    user,
-    logout,
-  } = useAuth()
-
-
-  // ========================================================
-  // ACTIVE NAVIGATION
-  // ========================================================
-
-  const isActive =
-    (
-      path
-    ) => {
-
-      return (
-        location.pathname ===
-        path
-      )
+  const isActive = (path) => {
+    if (path === '/datasets') {
+      return location.pathname.startsWith('/datasets')
     }
 
+    return location.pathname === path
+  }
 
-  // ========================================================
-  // LOGOUT
-  // ========================================================
-
-  const handleLogout =
-    async () => {
-
-      try {
-
-        await logout()
-
-      } catch (
-        error
-      ) {
-
-        console.error(
-          'Logout failed:',
-          error
-        )
-
-      } finally {
-
-        navigate(
-          '/'
-        )
-      }
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch (error) {
+      console.error('Logout failed:', error)
+    } finally {
+      navigate('/')
     }
-
-
-  // ========================================================
-  // RENDER
-  // ========================================================
+  }
 
   return (
-
     <div className="ssas-shell">
-
-
-      {/* ==================================================
-          TOP NAVIGATION
-          ================================================== */}
-
       <header className="ssas-topbar">
-
-
-        {/* BRAND */}
-
         <button
           type="button"
-
           className="ssas-topbar-brand"
-
-          onClick={() =>
-            navigate(
-              '/dashboard'
-            )
-          }
+          onClick={() => navigate('/dashboard')}
         >
-
-          <BarChart3
-            size={39}
-          />
-
+          <BarChart3 size={39} />
 
           <div>
-
-            <strong>
-              SSAS
-            </strong>
-
+            <strong>SSAS</strong>
             <span>
               Smart Statistical Analysis System
             </span>
-
           </div>
-
         </button>
 
-
-        {/* NAVIGATION */}
-
         <nav className="ssas-topbar-navigation">
+          {NAVIGATION_ITEMS.map((item) => {
+            const Icon = item.icon
 
-
-          {
-            NAVIGATION_ITEMS.map(
-              (
-                item
-              ) => {
-
-                const Icon =
-                  item.icon
-
-
-                return (
-
-                  <button
-                    key={
-                      item.path
-                    }
-
-                    type="button"
-
-                    className={
-                      isActive(
-                        item.path
-                      )
-                        ?
-                        'active'
-                        :
-                        ''
-                    }
-
-                    onClick={() =>
-                      navigate(
-                        item.path
-                      )
-                    }
-                  >
-
-                    <Icon
-                      className="ssas-nav-mobile-icon"
-                      size={17}
-                    />
-
-                    <span>
-                      {
-                        item.label
-                      }
-                    </span>
-
-                  </button>
-
-                )
-              }
+            return (
+              <button
+                key={item.path}
+                type="button"
+                className={
+                  isActive(item.path)
+                    ? 'active'
+                    : ''
+                }
+                onClick={() => navigate(item.path)}
+              >
+                <Icon
+                  className="ssas-nav-mobile-icon"
+                  size={17}
+                />
+                <span>{item.label}</span>
+              </button>
             )
-          }
-
-
+          })}
         </nav>
 
-
-        {/* USER */}
-
         <div className="ssas-topbar-actions">
-
-
           <button
             type="button"
-
             className="ssas-user-button"
           >
-
-            <User
-              size={19}
-            />
-
+            <User size={19} />
             <span>
-
-              {
-                user?.username
-                ||
-                user?.name
-                ||
-                'User'
-              }
-
+              {user?.username || user?.name || 'User'}
             </span>
-
           </button>
-
 
           <button
             type="button"
-
             className="ssas-signout-button"
-
-            onClick={
-              handleLogout
-            }
+            onClick={handleLogout}
           >
-
-            <LogOut
-              size={19}
-            />
-
-            <span>
-              Sign out
-            </span>
-
+            <LogOut size={19} />
+            <span>Sign out</span>
           </button>
-
 
           <button
             type="button"
-
             className="ssas-search-button"
-
             title="Statistics Calculator"
-
-            onClick={() =>
-              navigate(
-                '/dashboard'
-              )
-            }
+            onClick={() => navigate('/dashboard')}
           >
-
-            <Search
-              size={23}
-            />
-
+            <Search size={23} />
           </button>
-
-
         </div>
-
-
       </header>
 
-
-      {/* ==================================================
-          PAGE CONTENT
-          ================================================== */}
-
       <main className="ssas-shell-content">
-
         {children}
-
       </main>
-
-
     </div>
-
   )
 }

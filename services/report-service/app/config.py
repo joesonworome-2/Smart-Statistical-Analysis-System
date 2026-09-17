@@ -4,7 +4,6 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-
     project_name: str = (
         "SSAS Report Service"
     )
@@ -22,6 +21,13 @@ class Settings(BaseSettings):
     )
 
     jwt_algorithm: str = "HS256"
+
+    # The report service reads the actual dataset through the
+    # dataset service so generated charts use the same data the
+    # user analysed.
+    dataset_service_url: str = (
+        "http://dataset-service:8003"
+    )
 
     visualization_service_url: str = (
         "http://visualization-service:8007"
@@ -41,7 +47,6 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
 
 Path(
     settings.report_directory

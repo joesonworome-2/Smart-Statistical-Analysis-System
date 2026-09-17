@@ -99,12 +99,40 @@ const QUESTION_TYPES = [
 // HELPERS
 // ==========================================================
 
+function generateId() {
+
+  if (
+    typeof crypto !== 'undefined'
+    &&
+    typeof crypto.randomUUID === 'function'
+  ) {
+
+    return crypto.randomUUID()
+  }
+
+
+  return (
+    'ssas-'
+    +
+    Date.now().toString(36)
+    +
+    '-'
+    +
+    Math.random().toString(36).slice(2)
+    +
+    '-'
+    +
+    Math.random().toString(36).slice(2)
+  )
+}
+
+
 function createOption(
   text
 ) {
 
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     text,
   }
 }
@@ -117,7 +145,7 @@ function createQuestion(
 
   return {
 
-    id: crypto.randomUUID(),
+    id: generateId(),
 
     title:
       type === 'header'
@@ -2271,7 +2299,7 @@ export default function SurveyPage() {
         ...question,
 
         id:
-          crypto.randomUUID(),
+          generateId(),
 
         title:
           `${question.title} (Copy)`,
@@ -2283,7 +2311,7 @@ export default function SurveyPage() {
             ) => ({
               ...option,
               id:
-                crypto.randomUUID(),
+                generateId(),
             })
           ),
 
@@ -2294,7 +2322,7 @@ export default function SurveyPage() {
             ) => ({
               ...row,
               id:
-                crypto.randomUUID(),
+                generateId(),
             })
           ),
 
@@ -2305,7 +2333,7 @@ export default function SurveyPage() {
             ) => ({
               ...column,
               id:
-                crypto.randomUUID(),
+                generateId(),
             })
           ),
       }

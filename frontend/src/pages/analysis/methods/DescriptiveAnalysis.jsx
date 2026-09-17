@@ -251,15 +251,40 @@ function selectedKeys(
   return Object
     .entries(options)
     .filter(
-      (
-        [, checked]
-      ) =>
+      ([, checked]) =>
         checked
     )
     .map(
       ([key]) =>
         key
     )
+}
+
+
+function formatSimple(value) {
+  if (
+    value === null ||
+    value === undefined
+  ) {
+    return '—'
+  }
+
+  if (
+    typeof value !== 'number'
+  ) {
+    return String(value)
+  }
+
+  if (
+    Number.isInteger(value)
+  ) {
+    return value
+      .toLocaleString()
+  }
+
+  return Number(
+    value.toFixed(4)
+  ).toLocaleString()
 }
 
 
@@ -281,8 +306,7 @@ function metricStatisticValue(
   }
 
   if (
-    key ===
-    'confidence_interval_95'
+    key === 'confidence_interval_95'
   ) {
     const interval =
       statistics
@@ -307,16 +331,12 @@ function metricStatisticValue(
     key === 'mean_std'
   ) {
     if (
-      statistics.mean ===
-        null ||
-      statistics.mean ===
-        undefined ||
+      statistics.mean === null ||
+      statistics.mean === undefined ||
       statistics
-        .standard_deviation ===
-        null ||
+        .standard_deviation === null ||
       statistics
-        .standard_deviation ===
-        undefined
+        .standard_deviation === undefined
     ) {
       return null
     }
@@ -337,37 +357,9 @@ function metricStatisticValue(
 }
 
 
-function formatSimple(value) {
-  if (
-    value === null ||
-    value === undefined
-  ) {
-    return '—'
-  }
-
-  if (
-    typeof value !==
-    'number'
-  ) {
-    return String(value)
-  }
-
-  if (
-    Number.isInteger(value)
-  ) {
-    return value
-      .toLocaleString()
-  }
-
-  return Number(
-    value.toFixed(4)
-  ).toLocaleString()
-}
-
-
 function frequencyRowsFromResponse(
   responseData,
-  selectedNominalOptions
+  chosenOptions
 ) {
   const source =
     responseData
@@ -378,75 +370,67 @@ function frequencyRowsFromResponse(
       ?.results ||
     responseData
 
-
   if (
     Array.isArray(source)
   ) {
     return source.map(
       (item) => {
-        if (
-          typeof item !==
-          'object'
-        ) {
-          return {
-            Category:
-              String(item),
-          }
-        }
+        const normalized =
+          typeof item === 'object'
+            ? item
+            : {
+                value: item,
+              }
 
         const category =
-          item.value ??
-          item.category ??
-          item.label ??
-          item.name ??
+          normalized.value ??
+          normalized.category ??
+          normalized.label ??
+          normalized.name ??
           ''
 
         const frequency =
-          item.frequency ??
-          item.count ??
-          item.n ??
+          normalized.frequency ??
+          normalized.count ??
+          normalized.n ??
           null
 
         const percent =
-          item.percent ??
-          item.percentage ??
+          normalized.percent ??
+          normalized.percentage ??
           null
 
         const validPercent =
-          item.valid_percent ??
-          item.valid_percentage ??
+          normalized.valid_percent ??
+          normalized.valid_percentage ??
           percent
 
         const row = {
-          Category:
-            category,
+          Category: category,
         }
 
         if (
-          selectedNominalOptions
-            .includes(
-              'frequency'
-            )
+          chosenOptions.includes(
+            'frequency'
+          )
         ) {
           row.Frequency =
             frequency
         }
 
         if (
-          selectedNominalOptions
-            .includes(
-              'percent'
-            )
+          chosenOptions.includes(
+            'percent'
+          )
         ) {
           row['%'] =
             percent
         }
 
         if (
-          selectedNominalOptions
-            .includes(
-              'valid_percent'
-            )
+          chosenOptions.includes(
+            'valid_percent'
+          )
         ) {
           row['Valid %'] =
             validPercent
@@ -457,16 +441,12 @@ function frequencyRowsFromResponse(
     )
   }
 
-
   if (
     source &&
-    typeof source ===
-      'object'
+    typeof source === 'object'
   ) {
     const entries =
-      Object.entries(
-        source
-      )
+      Object.entries(source)
 
     const total =
       entries.reduce(
@@ -475,100 +455,175 @@ function frequencyRowsFromResponse(
           [, value]
         ) => {
           if (
-            typeof value ===
-            'number'
+            typeof value === 'number'
           ) {
-            return (
-              sum + value
-            )
+            return sum + value
           }
-
-          const count =
-            value?.frequency ??
-            value?.count ??
-            0
 
           return (
             sum +
-            Number(count || 0)
+            Number(
+              value?.frequency ??
+              value?.count ??
+              0
+            )
           )
         },
         0
       )
 
-
     return entries.map(
-      (
-        [category, value]
-      ) => {
+      ([category, value]) => {
         const frequency =
-          typeof value ===
-          'number'
+          typeof value === 'number'
             ? value
             : (
-                value
-                  ?.frequency ??
-                value
-                  ?.count ??
+                value?.frequency ??
+                value?.count ??
                 0
               )
 
         const calculatedPercent =
           total
             ? (
-                Number(
-                  frequency
-                ) /
+                Number(frequency) /
                 total
               ) * 100
             : null
 
         const row = {
-          Category:
-            category,
+          Category: category,
         }
 
-
         if (
-          selectedNominalOptions
-            .includes(
-              'frequency'
-            )
+          chosenOptions.includes(
+            'frequency'
+          )
         ) {
           row.Frequency =
             frequency
         }
 
-
         if (
-          selectedNominalOptions
-            .includes(
-              'percent'
-            )
+          chosenOptions.includes(
+            'percent'
+          )
         ) {
           row['%'] =
             calculatedPercent
         }
 
-
         if (
-          selectedNominalOptions
-            .includes(
-              'valid_percent'
-            )
+          chosenOptions.includes(
+            'valid_percent'
+          )
         ) {
           row['Valid %'] =
             calculatedPercent
         }
-
 
         return row
       }
     )
   }
 
-
   return []
+}
+
+
+function buildDescriptiveInterpretation(
+  metricTable,
+  frequencyTables
+) {
+  const sentences = []
+
+  if (
+    metricTable?.rows?.length
+  ) {
+    const variables =
+      metricTable.columns
+        .slice(1)
+
+    const meanRow =
+      metricTable.rows.find(
+        (row) =>
+          row.Statistic === 'Mean'
+      )
+
+    const medianRow =
+      metricTable.rows.find(
+        (row) =>
+          row.Statistic === 'Median'
+      )
+
+    if (meanRow) {
+      const parts =
+        variables
+          .slice(0, 4)
+          .map(
+            (variable) => {
+              const mean =
+                meanRow[variable]
+
+              const median =
+                medianRow?.[variable]
+
+              if (
+                mean === null ||
+                mean === undefined
+              ) {
+                return null
+              }
+
+              let text =
+                `${variable} has a mean of ${formatSimple(mean)}`
+
+              if (
+                median !== null &&
+                median !== undefined
+              ) {
+                text +=
+                  ` and a median of ${formatSimple(median)}`
+              }
+
+              return text
+            }
+          )
+          .filter(Boolean)
+
+      if (parts.length) {
+        sentences.push(
+          parts.join('; ') + '.'
+        )
+      }
+    }
+
+    if (!sentences.length) {
+      sentences.push(
+        `Descriptive statistics were calculated for ${variables.join(', ')}.`
+      )
+    }
+  }
+
+  if (
+    frequencyTables.length
+  ) {
+    const names =
+      frequencyTables.map(
+        (table) =>
+          table.title
+            .replace(
+              / frequencies$/i,
+              ''
+            )
+      )
+
+    sentences.push(
+      `Frequency distributions were calculated for ${names.join(', ')}.`
+    )
+  }
+
+  return sentences.join(' ')
 }
 
 
@@ -582,18 +637,15 @@ export default function DescriptiveAnalysis({
   const datasetId =
     dataset?.id
 
-
   const [
     variables,
     setVariables,
   ] = useState([])
 
-
   const [
     selectedVariables,
     setSelectedVariables,
   ] = useState([])
-
 
   const [
     metricOptions,
@@ -605,7 +657,6 @@ export default function DescriptiveAnalysis({
       )
   )
 
-
   const [
     nominalOptions,
     setNominalOptions,
@@ -616,30 +667,30 @@ export default function DescriptiveAnalysis({
       )
   )
 
-
   const [
     loadingVariables,
     setLoadingVariables,
   ] = useState(false)
-
 
   const [
     calculating,
     setCalculating,
   ] = useState(false)
 
-
   const [
     error,
     setError,
   ] = useState('')
 
+  const [
+    saveNotice,
+    setSaveNotice,
+  ] = useState('')
 
   const [
     metricTable,
     setMetricTable,
   ] = useState(null)
-
 
   const [
     frequencyTables,
@@ -648,7 +699,7 @@ export default function DescriptiveAnalysis({
 
 
   // ========================================================
-  // LOAD VARIABLE METADATA
+  // LOAD VARIABLES
   // ========================================================
 
   useEffect(
@@ -659,21 +710,13 @@ export default function DescriptiveAnalysis({
         return
       }
 
-
       const loadVariables =
         async () => {
-          setLoadingVariables(
-            true
-          )
-
+          setLoadingVariables(true)
           setError('')
-
+          setSaveNotice('')
           setMetricTable(null)
-
-          setFrequencyTables(
-            []
-          )
-
+          setFrequencyTables([])
 
           try {
             const response =
@@ -681,34 +724,22 @@ export default function DescriptiveAnalysis({
                 `/datasets/${datasetId}/variables`
               )
 
-
             const normalized =
               normalizeVariablesResponse(
                 response.data,
                 dataset
               )
 
-
             setVariables(
               normalized
             )
 
-            setSelectedVariables(
-              []
-            )
+            setSelectedVariables([])
 
           } catch (err) {
-            /*
-             * If metadata cannot be
-             * loaded, fall back to
-             * dataset columns.
-             */
-
             const fallback =
               (
-                dataset
-                  ?.columns ||
-                []
+                dataset?.columns || []
               ).map(
                 (column) => ({
                   name: column,
@@ -722,24 +753,19 @@ export default function DescriptiveAnalysis({
             )
 
             setError(
-              getErrorMessage(
-                err
-              )
+              getErrorMessage(err)
             )
 
           } finally {
-            setLoadingVariables(
-              false
-            )
+            setLoadingVariables(false)
           }
         }
 
-
       loadVariables()
     },
-
     [
       datasetId,
+      dataset,
     ]
   )
 
@@ -753,39 +779,31 @@ export default function DescriptiveAnalysis({
       () =>
         variables.filter(
           (variable) =>
-            variable
-              .measurement_level ===
+            variable.measurement_level ===
             'metric'
         ),
-
       [variables]
     )
-
 
   const ordinalVariables =
     useMemo(
       () =>
         variables.filter(
           (variable) =>
-            variable
-              .measurement_level ===
+            variable.measurement_level ===
             'ordinal'
         ),
-
       [variables]
     )
-
 
   const nominalVariables =
     useMemo(
       () =>
         variables.filter(
           (variable) =>
-            variable
-              .measurement_level ===
+            variable.measurement_level ===
             'nominal'
         ),
-
       [variables]
     )
 
@@ -796,17 +814,15 @@ export default function DescriptiveAnalysis({
 
   const isSelected =
     (name) =>
-      selectedVariables
-        .includes(name)
-
+      selectedVariables.includes(
+        name
+      )
 
   const toggleVariable =
     (name) => {
       setSelectedVariables(
         (previous) =>
-          previous.includes(
-            name
-          )
+          previous.includes(name)
             ? previous.filter(
                 (item) =>
                   item !== name
@@ -818,13 +834,22 @@ export default function DescriptiveAnalysis({
       )
     }
 
-
   const toggleMetricOption =
     (key) => {
       setMetricOptions(
         (previous) => ({
           ...previous,
+          [key]:
+            !previous[key],
+        })
+      )
+    }
 
+  const toggleNominalOption =
+    (key) => {
+      setNominalOptions(
+        (previous) => ({
+          ...previous,
           [key]:
             !previous[key],
         })
@@ -832,15 +857,72 @@ export default function DescriptiveAnalysis({
     }
 
 
-  const toggleNominalOption =
-    (key) => {
-      setNominalOptions(
-        (previous) => ({
-          ...previous,
+  // ========================================================
+  // SAVE EXACT DISPLAYED RESULT FOR REPORT GENERATION
+  // ========================================================
 
-          [key]:
-            !previous[key],
-        })
+  const saveDisplayedResult =
+    async (
+      tables,
+      interpretation,
+      selectedMetric,
+      selectedCategorical,
+      chosenMetricOptions,
+      chosenNominalOptions
+    ) => {
+      if (!tables.length) {
+        return
+      }
+
+      await api.post(
+        '/statistics/results',
+        {
+          dataset_id:
+            datasetId,
+
+          dataset_name:
+            dataset?.original_filename ||
+            dataset?.filename ||
+            'Dataset',
+
+          method:
+            'descriptive',
+
+          title:
+            'Descriptive statistics',
+
+          configuration: {
+            metric_variables:
+              selectedMetric,
+
+            categorical_variables:
+              selectedCategorical,
+
+            metric_statistics:
+              chosenMetricOptions,
+
+            frequency_statistics:
+              chosenNominalOptions,
+          },
+
+          tables,
+
+          assumptions:
+            null,
+
+          interpretation,
+
+          apa:
+            null,
+
+          metadata: {
+            source:
+              'descriptive_analysis',
+
+            exact_displayed_result:
+              true,
+          },
+        }
       )
     }
 
@@ -855,33 +937,21 @@ export default function DescriptiveAnalysis({
         setError(
           'Select a dataset first.'
         )
-
         return
       }
 
-
-      if (
-        !selectedVariables
-          .length
-      ) {
+      if (!selectedVariables.length) {
         setError(
           'Select at least one variable.'
         )
-
         return
       }
 
-
       setCalculating(true)
-
       setError('')
-
+      setSaveNotice('')
       setMetricTable(null)
-
-      setFrequencyTables(
-        []
-      )
-
+      setFrequencyTables([])
 
       try {
         const selectedMetric =
@@ -889,38 +959,52 @@ export default function DescriptiveAnalysis({
             (name) =>
               metricVariables.some(
                 (variable) =>
-                  variable.name ===
-                  name
+                  variable.name === name
               )
           )
-
 
         const selectedNominal =
           selectedVariables.filter(
             (name) =>
               nominalVariables.some(
                 (variable) =>
-                  variable.name ===
-                  name
+                  variable.name === name
               )
           )
-
 
         const selectedOrdinal =
           selectedVariables.filter(
             (name) =>
               ordinalVariables.some(
                 (variable) =>
-                  variable.name ===
-                  name
+                  variable.name === name
               )
           )
+
+        const selectedCategorical = [
+          ...selectedNominal,
+          ...selectedOrdinal,
+        ]
+
+        const chosenMetricOptions =
+          selectedKeys(
+            metricOptions
+          )
+
+        const chosenNominalOptions =
+          selectedKeys(
+            nominalOptions
+          )
+
+        let nextMetricTable =
+          null
+
+        const nextFrequencyTables = []
 
 
         // --------------------------------------------------
         // METRIC TABLE
         // --------------------------------------------------
-
         if (
           selectedMetric.length
         ) {
@@ -929,22 +1013,12 @@ export default function DescriptiveAnalysis({
               `/statistics/descriptive/${datasetId}`
             )
 
-
           const statistics =
-            response
-              .data
-              .results ||
+            response.data.results ||
             {}
 
-
-          const chosenStatistics =
-            selectedKeys(
-              metricOptions
-            )
-
-
           const tableRows =
-            chosenStatistics.map(
+            chosenMetricOptions.map(
               (statisticKey) => {
                 const option =
                   METRIC_OPTIONS.find(
@@ -953,33 +1027,27 @@ export default function DescriptiveAnalysis({
                       statisticKey
                   )
 
-
                 const row = {
                   Statistic:
                     option?.label ||
                     statisticKey,
                 }
 
-
                 selectedMetric.forEach(
                   (variable) => {
                     row[variable] =
                       metricStatisticValue(
-                        statistics[
-                          variable
-                        ],
+                        statistics[variable],
                         statisticKey
                       )
                   }
                 )
 
-
                 return row
               }
             )
 
-
-          setMetricTable({
+          nextMetricTable = {
             title:
               'Descriptive statistics',
 
@@ -990,33 +1058,16 @@ export default function DescriptiveAnalysis({
 
             rows:
               tableRows,
-          })
+          }
         }
 
 
         // --------------------------------------------------
-        // NOMINAL / ORDINAL TABLES
+        // NOMINAL / ORDINAL FREQUENCY TABLES
         // --------------------------------------------------
-
-        const categorical =
-          [
-            ...selectedNominal,
-            ...selectedOrdinal,
-          ]
-
-
-        const chosenNominalOptions =
-          selectedKeys(
-            nominalOptions
-          )
-
-
-        const generatedTables = []
-
-
         for (
           const variable
-          of categorical
+          of selectedCategorical
         ) {
           const response =
             await api.get(
@@ -1029,76 +1080,82 @@ export default function DescriptiveAnalysis({
               }
             )
 
-
-          const rows =
+          const rawRows =
             frequencyRowsFromResponse(
               response.data,
               chosenNominalOptions
             )
 
-
           const columns = [
             variable,
           ]
 
-
           if (
-            chosenNominalOptions
-              .includes(
-                'frequency'
-              )
+            chosenNominalOptions.includes(
+              'frequency'
+            )
           ) {
             columns.push(
               'Frequency'
             )
           }
 
-
           if (
-            chosenNominalOptions
-              .includes(
-                'percent'
-              )
-          ) {
-            columns.push(
-              '%'
+            chosenNominalOptions.includes(
+              'percent'
             )
+          ) {
+            columns.push('%')
           }
 
-
           if (
-            chosenNominalOptions
-              .includes(
-                'valid_percent'
-              )
+            chosenNominalOptions.includes(
+              'valid_percent'
+            )
           ) {
             columns.push(
               'Valid %'
             )
           }
 
-
           const renamedRows =
-            rows.map(
-              (row) => ({
-                [variable]:
-                  row.Category,
+            rawRows.map(
+              (row) => {
+                const next = {
+                  [variable]:
+                    row.Category,
+                }
 
-                Frequency:
-                  row.Frequency,
+                if (
+                  columns.includes(
+                    'Frequency'
+                  )
+                ) {
+                  next.Frequency =
+                    row.Frequency
+                }
 
-                '%':
-                  row['%'],
+                if (
+                  columns.includes('%')
+                ) {
+                  next['%'] =
+                    row['%']
+                }
 
-                'Valid %':
-                  row[
+                if (
+                  columns.includes(
                     'Valid %'
-                  ],
-              })
+                  )
+                ) {
+                  next['Valid %'] =
+                    row['Valid %']
+                }
+
+                return next
+              }
             )
 
-
-          generatedTables.push({
+          nextFrequencyTables.push({
             title:
               `${variable} frequencies`,
 
@@ -1110,22 +1167,64 @@ export default function DescriptiveAnalysis({
         }
 
 
+        // --------------------------------------------------
+        // DISPLAY RESULTS
+        // --------------------------------------------------
+        setMetricTable(
+          nextMetricTable
+        )
+
         setFrequencyTables(
-          generatedTables
+          nextFrequencyTables
         )
 
 
-        /*
-         * Metric + nominal grouped
-         * descriptive statistics will
-         * be the next backend extension.
-         */
+        // --------------------------------------------------
+        // SAVE EXACTLY WHAT THE USER SEES
+        // --------------------------------------------------
+        const reportTables = [
+          ...(
+            nextMetricTable
+              ? [nextMetricTable]
+              : []
+          ),
+          ...nextFrequencyTables,
+        ]
+
+        const interpretation =
+          buildDescriptiveInterpretation(
+            nextMetricTable,
+            nextFrequencyTables
+          )
+
+        try {
+          await saveDisplayedResult(
+            reportTables,
+            interpretation,
+            selectedMetric,
+            selectedCategorical,
+            chosenMetricOptions,
+            chosenNominalOptions
+          )
+
+          setSaveNotice(
+            'These results were saved and will be included in the SSAS report.'
+          )
+
+        } catch (saveError) {
+          setSaveNotice(
+            'Results were calculated, but SSAS could not save this result to the report history.'
+          )
+
+          console.error(
+            'Unable to save descriptive result:',
+            saveError
+          )
+        }
 
       } catch (err) {
         setError(
-          getErrorMessage(
-            err
-          )
+          getErrorMessage(err)
         )
 
       } finally {
@@ -1135,7 +1234,7 @@ export default function DescriptiveAnalysis({
 
 
   // ========================================================
-  // RENDER VARIABLE CHECKBOX GROUP
+  // RENDER VARIABLE GROUP
   // ========================================================
 
   const renderVariableGroup =
@@ -1148,7 +1247,6 @@ export default function DescriptiveAnalysis({
         <h4>
           {title}
         </h4>
-
 
         {items.length ? (
           <div className="analysis-variable-list">
@@ -1182,13 +1280,10 @@ export default function DescriptiveAnalysis({
             )}
 
           </div>
-
         ) : (
-
           <span className="analysis-empty-variable-group">
             No variables
           </span>
-
         )}
 
       </div>
@@ -1209,7 +1304,6 @@ export default function DescriptiveAnalysis({
     )
   }
 
-
   return (
     <div className="descriptive-analysis">
 
@@ -1218,7 +1312,6 @@ export default function DescriptiveAnalysis({
         <div className="analysis-section-label">
           Configuration
         </div>
-
 
         <div className="analysis-variable-grid">
 
@@ -1239,13 +1332,11 @@ export default function DescriptiveAnalysis({
 
         </div>
 
-
         <div className="descriptive-calculation-options">
 
           <h4>
             Calculate
           </h4>
-
 
           <div className="descriptive-option-layout">
 
@@ -1281,7 +1372,6 @@ export default function DescriptiveAnalysis({
 
             </div>
 
-
             <div className="descriptive-nominal-options">
 
               {NOMINAL_OPTIONS.map(
@@ -1316,7 +1406,6 @@ export default function DescriptiveAnalysis({
 
           </div>
 
-
           <button
             type="button"
             className="analysis-calculate-button"
@@ -1340,22 +1429,27 @@ export default function DescriptiveAnalysis({
 
       </section>
 
-
       {error && (
         <div className="analysis-error">
           {error}
         </div>
       )}
 
+      {saveNotice && (
+        <div className="analysis-result-save-notice">
+          {saveNotice}
+        </div>
+      )}
 
-      {(metricTable ||
-        frequencyTables.length > 0) && (
+      {(
+        metricTable ||
+        frequencyTables.length > 0
+      ) && (
         <section className="analysis-results-container">
 
           <div className="analysis-section-label">
             Results
           </div>
-
 
           {metricTable && (
             <ResultTable
@@ -1370,7 +1464,6 @@ export default function DescriptiveAnalysis({
               }
             />
           )}
-
 
           {frequencyTables.map(
             (table) => (

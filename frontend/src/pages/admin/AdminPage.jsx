@@ -7,7 +7,6 @@ import {
   Activity,
   BarChart3,
   Bell,
-  BrainCircuit,
   Database,
   FileText,
   RefreshCw,
@@ -101,6 +100,8 @@ export default function AdminPage() {
                     .value.data.total ??
                   datasetsResult
                     .value.data.count ??
+                  datasetsResult
+                    .value.data.datasets?.length ??
                   0
                 )
               : 0,
@@ -209,14 +210,8 @@ export default function AdminPage() {
   return (
     <div className="admin-page">
 
-      {/* =========================
-          HEADER
-         ========================= */}
-
       <header className="admin-header">
-
         <div>
-
           <div className="admin-title-row">
             <ShieldCheck size={30} />
 
@@ -229,12 +224,9 @@ export default function AdminPage() {
             System administration,
             monitoring and management.
           </p>
-
         </div>
 
-
         <div className="admin-user-card">
-
           <span>
             Administrator
           </span>
@@ -247,15 +239,8 @@ export default function AdminPage() {
           <small>
             {user?.email}
           </small>
-
         </div>
-
       </header>
-
-
-      {/* =========================
-          ERROR MESSAGE
-         ========================= */}
 
       {error && (
         <div className="alert error">
@@ -263,13 +248,7 @@ export default function AdminPage() {
         </div>
       )}
 
-
-      {/* =========================
-          SYSTEM STATUS
-         ========================= */}
-
       <section className="admin-status-bar">
-
         <div>
           <Activity size={20} />
 
@@ -281,7 +260,6 @@ export default function AdminPage() {
             {stats.systemStatus}
           </strong>
         </div>
-
 
         <button
           type="button"
@@ -302,16 +280,9 @@ export default function AdminPage() {
             ? 'Refreshing...'
             : 'Refresh'}
         </button>
-
       </section>
 
-
-      {/* =========================
-          ADMIN STATISTICS
-         ========================= */}
-
       <section className="admin-stat-grid">
-
         {cards.map((card) => {
           const Icon = card.icon
 
@@ -324,14 +295,11 @@ export default function AdminPage() {
                 navigate(card.route)
               }
             >
-
               <div className="admin-stat-icon">
                 <Icon size={24} />
               </div>
 
-
               <div>
-
                 <span>
                   {card.title}
                 </span>
@@ -341,24 +309,14 @@ export default function AdminPage() {
                     ? '...'
                     : card.value}
                 </strong>
-
               </div>
-
             </button>
           )
         })}
-
       </section>
 
-
-      {/* =========================
-          ADMIN MODULES
-         ========================= */}
-
       <section className="admin-section">
-
         <div className="admin-section-heading">
-
           <h2>
             Administration Modules
           </h2>
@@ -367,17 +325,11 @@ export default function AdminPage() {
             Manage SSAS users,
             datasets, reports,
             notifications and
-            analytical services.
+            statistical services.
           </p>
-
         </div>
 
-
         <div className="admin-module-grid">
-
-
-          {/* USER MANAGEMENT */}
-
           <button
             type="button"
             className="admin-module-card"
@@ -388,7 +340,6 @@ export default function AdminPage() {
             <Users size={28} />
 
             <div>
-
               <h3>
                 User Management
               </h3>
@@ -399,13 +350,8 @@ export default function AdminPage() {
                 activate and
                 deactivate accounts.
               </p>
-
             </div>
-
           </button>
-
-
-          {/* DATASET MANAGEMENT */}
 
           <button
             type="button"
@@ -417,7 +363,6 @@ export default function AdminPage() {
             <Database size={28} />
 
             <div>
-
               <h3>
                 Dataset Management
               </h3>
@@ -427,13 +372,8 @@ export default function AdminPage() {
                 datasets uploaded
                 into SSAS.
               </p>
-
             </div>
-
           </button>
-
-
-          {/* STATISTICAL ANALYSIS */}
 
           <button
             type="button"
@@ -445,53 +385,18 @@ export default function AdminPage() {
             <BarChart3 size={28} />
 
             <div>
-
               <h3>
                 Statistical Analysis
               </h3>
 
               <p>
                 Access descriptive,
-                inferential and
-                regression analysis
-                tools.
+                inferential, regression
+                and Predictive Analytics
+                from one analysis module.
               </p>
-
             </div>
-
           </button>
-
-
-          {/* AI / ML */}
-
-          <button
-            type="button"
-            className="admin-module-card"
-            onClick={() =>
-              navigate('/ml')
-            }
-          >
-            <BrainCircuit size={28} />
-
-            <div>
-
-              <h3>
-                AI / ML Management
-              </h3>
-
-              <p>
-                Manage machine
-                learning operations,
-                models and prediction
-                tools.
-              </p>
-
-            </div>
-
-          </button>
-
-
-          {/* REPORTS */}
 
           <button
             type="button"
@@ -503,7 +408,6 @@ export default function AdminPage() {
             <FileText size={28} />
 
             <div>
-
               <h3>
                 Report Management
               </h3>
@@ -513,13 +417,8 @@ export default function AdminPage() {
                 download analytical
                 reports.
               </p>
-
             </div>
-
           </button>
-
-
-          {/* NOTIFICATIONS */}
 
           <button
             type="button"
@@ -533,7 +432,6 @@ export default function AdminPage() {
             <Bell size={28} />
 
             <div>
-
               <h3>
                 Notifications
               </h3>
@@ -541,17 +439,13 @@ export default function AdminPage() {
               <p>
                 Monitor alerts,
                 reports and email
-                notification delivery.
+                notification delivery
+                from the Admin Console.
               </p>
-
             </div>
-
           </button>
-
         </div>
-
       </section>
-
     </div>
   )
 }

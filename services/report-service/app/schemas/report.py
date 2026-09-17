@@ -6,7 +6,6 @@ from pydantic import BaseModel
 
 ReportFormat = Literal[
     "pdf",
-    "xlsx",
 ]
 
 

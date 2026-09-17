@@ -13,7 +13,6 @@ from fastapi import (
     Depends,
     Header,
     HTTPException,
-    Query,
     status,
 )
 from fastapi.responses import (
@@ -34,10 +33,9 @@ from app.schemas.report import (
 from app.security.dependencies import (
     get_current_user,
 )
-from app.services.excel_generator import (
-    generate_excel_report,
+from app.services.notification_client import (
+    notify_report_ready,
 )
-from app.services.notification_client import notify_report_ready
 from app.services.pdf_generator import (
     generate_pdf_report,
 )
@@ -61,7 +59,6 @@ router = APIRouter(
 def _user_id(
     current_user: dict,
 ) -> str:
-
     return str(
         current_user.get(
             "_id"
@@ -76,7 +73,6 @@ def _get_owned_dataset(
     dataset_id: str,
     current_user: dict,
 ):
-
     if not ObjectId.is_valid(
         dataset_id
     ):
@@ -98,7 +94,6 @@ def _get_owned_dataset(
     )
 
     if not dataset:
-
         raise HTTPException(
             status_code=404,
             detail=(
@@ -121,7 +116,6 @@ def _get_owned_dataset(
         dataset_user_id
         != current_user_id
     ):
-
         raise HTTPException(
             status_code=403,
             detail=(
@@ -147,10 +141,6 @@ def _get_owned_dataset(
 )
 def generate_report(
     dataset_id: str,
-    format: str = Query(
-        "pdf",
-        pattern="^(pdf|xlsx)$",
-    ),
     authorization: str | None = Header(
         default=None
     ),
@@ -158,6 +148,8 @@ def generate_report(
         get_current_user
     ),
 ):
+    # SSAS final reports are PDF-only.
+    # Editable data remains available in the dataset workspace.
 
     dataset, user_id = (
         _get_owned_dataset(
@@ -186,13 +178,10 @@ def generate_report(
         authorization=authorization,
     )
 
-    extension = format
-
     file_name = (
         f"ssas_report_"
         f"{dataset_id}_"
-        f"{report_id}."
-        f"{extension}"
+        f"{report_id}.pdf"
     )
 
     file_path = str(
@@ -203,32 +192,21 @@ def generate_report(
     )
 
     try:
-
-        if format == "pdf":
-
-            generate_pdf_report(
-                report_data,
-                file_path,
-            )
-
-        elif format == "xlsx":
-
-            generate_excel_report(
-                report_data,
-                file_path,
-            )
+        generate_pdf_report(
+            report_data,
+            file_path,
+        )
 
     except Exception as exc:
-
         logger.exception(
-            "Report generation failed: %s",
+            "PDF report generation failed: %s",
             exc,
         )
 
         raise HTTPException(
             status_code=500,
             detail=(
-                "Report generation failed."
+                "PDF report generation failed."
             ),
         )
 
@@ -239,7 +217,7 @@ def generate_report(
         "dataset_id": dataset_id,
         "user_id": user_id,
         "title": report_title,
-        "format": format,
+        "format": "pdf",
         "file_name": file_name,
         "file_path": file_path,
         "created_at": created_at,
@@ -279,11 +257,7 @@ def generate_report(
         document
     )
 
-    # Notify the user that the report is ready.
-    # Notification failure must not cause
-    # report generation to fail.
     try:
-
         notification_result = (
             notify_report_ready(
                 report_id=report_id,
@@ -301,7 +275,6 @@ def generate_report(
         )
 
     except Exception as exc:
-
         logger.warning(
             "Report %s was generated "
             "successfully, but notification "
@@ -315,7 +288,7 @@ def generate_report(
             report_id=report_id,
             dataset_id=dataset_id,
             title=report_title,
-            format=format,
+            format="pdf",
             file_name=file_name,
             created_at=created_at,
             download_endpoint=(
@@ -338,7 +311,6 @@ def list_reports(
         get_current_user
     ),
 ):
-
     user_id = _user_id(
         current_user
     )
@@ -357,7 +329,6 @@ def list_reports(
     reports = []
 
     for document in documents:
-
         reports.append(
             ReportListItem(
                 report_id=str(
@@ -407,11 +378,9 @@ def get_report(
         get_current_user
     ),
 ):
-
     if not ObjectId.is_valid(
         report_id
     ):
-
         raise HTTPException(
             status_code=400,
             detail=(
@@ -430,7 +399,6 @@ def get_report(
     )
 
     if not document:
-
         raise HTTPException(
             status_code=404,
             detail="Report not found.",
@@ -445,7 +413,6 @@ def get_report(
             "user_id"
         )
     ) != user_id:
-
         raise HTTPException(
             status_code=403,
             detail=(
@@ -498,11 +465,9 @@ def download_report(
         get_current_user
     ),
 ):
-
     if not ObjectId.is_valid(
         report_id
     ):
-
         raise HTTPException(
             status_code=400,
             detail=(
@@ -521,7 +486,6 @@ def download_report(
     )
 
     if not document:
-
         raise HTTPException(
             status_code=404,
             detail="Report not found.",
@@ -536,7 +500,6 @@ def download_report(
             "user_id"
         )
     ) != user_id:
-
         raise HTTPException(
             status_code=403,
             detail=(
@@ -555,7 +518,6 @@ def download_report(
             file_path
         ).exists()
     ):
-
         raise HTTPException(
             status_code=404,
             detail=(
@@ -564,22 +526,21 @@ def download_report(
             ),
         )
 
-    report_format = document.get(
-        "format"
-    )
+    report_format = str(
+        document.get(
+            "format",
+            "pdf",
+        )
+    ).lower()
 
     if report_format == "pdf":
-
         media_type = (
             "application/pdf"
         )
-
     else:
-
+        # Backward compatibility for old report records.
         media_type = (
-            "application/vnd."
-            "openxmlformats-officedocument."
-            "spreadsheetml.sheet"
+            "application/octet-stream"
         )
 
     return FileResponse(
@@ -600,11 +561,9 @@ def delete_report(
         get_current_user
     ),
 ):
-
     if not ObjectId.is_valid(
         report_id
     ):
-
         raise HTTPException(
             status_code=400,
             detail=(
@@ -623,7 +582,6 @@ def delete_report(
     )
 
     if not document:
-
         raise HTTPException(
             status_code=404,
             detail="Report not found.",
@@ -638,7 +596,6 @@ def delete_report(
             "user_id"
         )
     ) != user_id:
-
         raise HTTPException(
             status_code=403,
             detail=(
@@ -652,9 +609,7 @@ def delete_report(
     )
 
     if file_path:
-
         try:
-
             Path(
                 file_path
             ).unlink(
@@ -662,7 +617,6 @@ def delete_report(
             )
 
         except Exception:
-
             logger.warning(
                 (
                     "Unable to remove "

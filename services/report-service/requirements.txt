@@ -8,3 +8,6 @@ httpx
 reportlab
 openpyxl
 python-multipart
+pandas
+numpy
+matplotlib

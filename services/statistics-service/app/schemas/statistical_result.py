@@ -1,6 +1,9 @@
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import (
+    BaseModel,
+    Field,
+)
 
 
 class StatisticalResultSaveRequest(
@@ -8,7 +11,10 @@ class StatisticalResultSaveRequest(
 ):
     dataset_id: str
 
-    dataset_name: str | None = None
+    dataset_name: (
+        str
+        | None
+    ) = None
 
     method: str
 
@@ -16,7 +22,7 @@ class StatisticalResultSaveRequest(
 
     configuration: dict[
         str,
-        Any
+        Any,
     ] = Field(
         default_factory=dict
     )
@@ -24,7 +30,7 @@ class StatisticalResultSaveRequest(
     tables: list[
         dict[
             str,
-            Any
+            Any,
         ]
     ] = Field(
         default_factory=list
@@ -33,26 +39,42 @@ class StatisticalResultSaveRequest(
     assumptions: (
         dict[
             str,
-            Any
+            Any,
         ]
         |
         list[
             dict[
                 str,
-                Any
+                Any,
             ]
         ]
         |
         None
     ) = None
 
-    interpretation: str | None = None
+    interpretation: (
+        str
+        | None
+    ) = None
 
-    apa: str | None = None
+    # Exact structured explanation shown by
+    # Analysis -> Explain in the SSAS frontend.
+    detailed_explanation: (
+        dict[
+            str,
+            Any,
+        ]
+        | None
+    ) = None
+
+    apa: (
+        str
+        | None
+    ) = None
 
     metadata: dict[
         str,
-        Any
+        Any,
     ] = Field(
         default_factory=dict
     )

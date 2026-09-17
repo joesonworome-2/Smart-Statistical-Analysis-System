@@ -1,150 +1,55 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 
 import {
-  ArrowLeft,
   BarChart3,
-  FilePlus2,
+  Check,
+  Cloud,
+  Download,
+  FileSpreadsheet,
   Plus,
-  Save,
-  Sparkles,
+  Ruler,
   Trash2,
   Upload,
 } from 'lucide-react'
 
 import {
-  useLocation,
   useNavigate,
   useParams,
+  useSearchParams,
 } from 'react-router-dom'
 
-import Plot from 'react-plotly.js'
+import api
+  from '../../api/api'
 
-import api from '../../api/api'
-import AppShell from '../../components/AppShell'
-import DataTransferModal from './DataTransferModal'
+import AppShell
+  from '../../components/AppShell'
 
 import './DataWorkspacePage.css'
 
 
 // ==========================================================
-// ANALYSIS METHODS
+// CONFIGURATION
 // ==========================================================
 
-const analysisMethods = [
-  'Descriptive / Charts',
-  'Hypothesis Tests',
-  'Correlation',
-  'Regression',
-  'Predictive Analytics',
-  'ANCOVA',
-  'Survival Analysis',
-  'EFA / PCA',
-  'Reliability',
-  'Cluster Analysis',
-  'ROC Analysis',
-  'Mediation / Moderation',
-  'Monte Carlo',
-  'Sample Size',
-]
+const DEFAULT_COLUMNS = 10
+
+const DEFAULT_ROWS = 14
+
+const AUTOSAVE_DELAY = 1000
 
 
 // ==========================================================
-// DESCRIPTIVE OPTIONS
+// ERROR HELPER
 // ==========================================================
 
-const statisticOptions = [
-  ['count', 'Number of Values'],
-  ['mean', 'Mean'],
-  ['median', 'Median'],
-  ['mode', 'Mode'],
-  ['sum', 'Sum'],
-
-  [
-    'standard_deviation',
-    'Std. Deviation',
-  ],
-
-  [
-    'standard_error',
-    'Standard Error',
-  ],
-
-  ['variance', 'Variance'],
-  ['minimum', 'Minimum'],
-  ['maximum', 'Maximum'],
-  ['range', 'Range'],
-
-  ['q1', 'Quartile 1'],
-  ['q2', 'Quartile 2'],
-  ['q3', 'Quartile 3'],
-
-  [
-    'iqr',
-    'Interquartile Range',
-  ],
-
-  [
-    'median_absolute_deviation',
-    'Median Absolute Deviation',
-  ],
-
-  ['skewness', 'Skewness'],
-  ['kurtosis', 'Kurtosis'],
-
-  [
-    'confidence_interval_95',
-    '95% Confidence Interval',
-  ],
-
-  [
-    'coefficient_of_variation_percent',
-    'Coefficient of Variation (%)',
-  ],
-]
-
-
-const defaultCalculations = {
-  count: true,
-
-  mean: true,
-  median: true,
-  mode: false,
-  sum: false,
-
-  standard_deviation: true,
-  standard_error: false,
-  variance: false,
-
-  minimum: true,
-  maximum: true,
-  range: false,
-
-  q1: false,
-  q2: false,
-  q3: false,
-  iqr: false,
-
-  median_absolute_deviation: false,
-
-  skewness: false,
-  kurtosis: false,
-
-  confidence_interval_95: false,
-
-  coefficient_of_variation_percent:
-    false,
-}
-
-
-// ==========================================================
-// HELPERS
-// ==========================================================
-
-function getErrorMessage(error) {
+function getErrorMessage(
+  error
+) {
   const detail =
     error?.response?.data?.detail
 
@@ -155,6 +60,26 @@ function getErrorMessage(error) {
     return detail
   }
 
+  if (
+    Array.isArray(
+      detail
+    )
+  ) {
+    return detail
+      .map(
+        (
+          item
+        ) =>
+          item?.msg ||
+          String(
+            item
+          )
+      )
+      .join(
+        ', '
+      )
+  }
+
   return (
     error?.message ||
     'Something went wrong.'
@@ -162,37 +87,181 @@ function getErrorMessage(error) {
 }
 
 
-function formatNumber(value) {
-  if (
-    value === null ||
-    value === undefined
-  ) {
-    return '—'
-  }
+// ==========================================================
+// CREATE EMPTY ROWS
+// ==========================================================
 
-  if (
-    typeof value ===
-    'number'
-  ) {
-    return new Intl.NumberFormat(
-      undefined,
-      {
-        maximumFractionDigits:
-          4,
-      }
-    ).format(value)
-  }
-
-  return String(value)
+function createRows(
+  rowCount,
+  columnCount
+) {
+  return Array.from(
+    {
+      length:
+        rowCount,
+    },
+    () =>
+      Array(
+        columnCount
+      ).fill('')
+  )
 }
 
 
-function escapeCSV(value) {
+// ==========================================================
+// CSV LINE PARSER
+// ==========================================================
+
+function parseCSVLine(
+  line
+) {
+  const values = []
+
+  let current = ''
+
+  let insideQuotes =
+    false
+
+  for (
+    let index = 0;
+    index < line.length;
+    index += 1
+  ) {
+    const character =
+      line[index]
+
+    if (
+      character === '"'
+    ) {
+      if (
+        insideQuotes &&
+        line[
+          index + 1
+        ] === '"'
+      ) {
+        current += '"'
+
+        index += 1
+
+      } else {
+        insideQuotes =
+          !insideQuotes
+      }
+
+      continue
+    }
+
+    if (
+      character === ',' &&
+      !insideQuotes
+    ) {
+      values.push(
+        current.trim()
+      )
+
+      current = ''
+
+      continue
+    }
+
+    current +=
+      character
+  }
+
+  values.push(
+    current.trim()
+  )
+
+  return values
+}
+
+
+// ==========================================================
+// CLIPBOARD PARSER
+// ==========================================================
+
+function parseClipboardData(
+  text
+) {
+  const cleaned =
+    String(
+      text || ''
+    )
+      .replace(
+        /\r\n/g,
+        '\n'
+      )
+      .replace(
+        /\r/g,
+        '\n'
+      )
+
+  if (
+    !cleaned.trim()
+  ) {
+    return []
+  }
+
+  const lines =
+    cleaned.split(
+      '\n'
+    )
+
+  while (
+    lines.length &&
+    !lines[
+      lines.length - 1
+    ].trim()
+  ) {
+    lines.pop()
+  }
+
+  const tabSeparated =
+    cleaned.includes(
+      '\t'
+    )
+
+  return lines.map(
+    (
+      line
+    ) => {
+      if (
+        tabSeparated
+      ) {
+        return line
+          .split(
+            '\t'
+          )
+          .map(
+            (
+              value
+            ) =>
+              value.trim()
+          )
+      }
+
+      return parseCSVLine(
+        line
+      )
+    }
+  )
+}
+
+
+// ==========================================================
+// CSV EXPORT HELPER
+// ==========================================================
+
+function escapeCSV(
+  value
+) {
   const text =
     value === null ||
     value === undefined
       ? ''
-      : String(value)
+      : String(
+          value
+        )
 
   if (
     text.includes(',') ||
@@ -213,42 +282,113 @@ function escapeCSV(value) {
 // MEASUREMENT LEVEL AUTO-DETECTION
 // ==========================================================
 
-function detectManualLevel(values) {
-  const cleanValues =
-    values.filter(
-      (value) =>
-        value !== null &&
-        value !== undefined &&
-        String(value).trim() !== ''
-    )
+function detectMeasurementLevel(
+  values
+) {
+  const clean =
+    values
+      .map(
+        (
+          value
+        ) =>
+          String(
+            value ?? ''
+          ).trim()
+      )
+      .filter(
+        Boolean
+      )
 
-
-  if (!cleanValues.length) {
+  if (
+    !clean.length
+  ) {
     return 'nominal'
   }
 
+  const ordinalTerms =
+    new Set([
+      'very low',
+      'low',
+      'medium',
+      'high',
+      'very high',
 
-  const numeric =
-    cleanValues.every(
-      (value) =>
-        !Number.isNaN(
-          Number(value)
+      'poor',
+      'fair',
+      'good',
+      'very good',
+      'excellent',
+
+      'strongly disagree',
+      'disagree',
+      'neutral',
+      'agree',
+      'strongly agree',
+
+      'primary',
+      'secondary',
+      'tertiary',
+
+      'beginner',
+      'intermediate',
+      'advanced',
+
+      'bachelor',
+      'master',
+      'phd',
+
+      'first',
+      'second',
+      'third',
+      'fourth',
+      'fifth',
+    ])
+
+  const normalized =
+    clean.map(
+      (
+        value
+      ) =>
+        value.toLowerCase()
+    )
+
+  const allOrdinal =
+    normalized.every(
+      (
+        value
+      ) =>
+        ordinalTerms.has(
+          value
         )
     )
 
+  if (
+    allOrdinal
+  ) {
+    return 'ordinal'
+  }
 
-  const uniqueCount =
-    new Set(
-      cleanValues.map(String)
-    ).size
+  const numeric =
+    clean.every(
+      (
+        value
+      ) =>
+        value !== '' &&
+        !Number.isNaN(
+          Number(
+            value
+          )
+        )
+    )
 
+  if (
+    numeric
+  ) {
+    const uniqueCount =
+      new Set(
+        clean
+      ).size
 
-  if (numeric) {
-    /*
-     * Binary numerical variables
-     * such as 0/1 are treated
-     * as nominal initially.
-     */
     if (
       uniqueCount <= 2
     ) {
@@ -258,152 +398,253 @@ function detectManualLevel(values) {
     return 'metric'
   }
 
-
   return 'nominal'
 }
 
 
 // ==========================================================
-// CSV PARSER FOR COPY/PASTE
+// NORMALIZE SPREADSHEET
 // ==========================================================
 
-function parseCSVLine(
-  line,
-  delimiter = ','
+function normalizeGrid(
+  columns,
+  rows
 ) {
-  const values = []
+  const usedIndexes =
+    columns
+      .map(
+        (
+          _,
+          index
+        ) =>
+          index
+      )
+      .filter(
+        (
+          columnIndex
+        ) => {
+          const header =
+            String(
+              columns[
+                columnIndex
+              ] ?? ''
+            ).trim()
 
-  let current = ''
-  let insideQuotes = false
+          const hasData =
+            rows.some(
+              (
+                row
+              ) =>
+                String(
+                  row?.[
+                    columnIndex
+                  ] ?? ''
+                ).trim() !== ''
+            )
 
-
-  for (
-    let index = 0;
-    index < line.length;
-    index += 1
-  ) {
-    const character =
-      line[index]
-
-
-    if (
-      character === '"'
-    ) {
-      if (
-        insideQuotes &&
-        line[index + 1] === '"'
-      ) {
-        current += '"'
-
-        index += 1
-      } else {
-        insideQuotes =
-          !insideQuotes
-      }
-
-      continue
-    }
-
-
-    if (
-      character === delimiter &&
-      !insideQuotes
-    ) {
-      values.push(
-        current.trim()
+          return (
+            header !== '' ||
+            hasData
+          )
+        }
       )
 
-      current = ''
-
-      continue
-    }
-
-
-    current += character
+  if (
+    !usedIndexes.length
+  ) {
+    throw new Error(
+      'Enter at least one variable before saving the dataset.'
+    )
   }
 
+  const headers =
+    usedIndexes.map(
+      (
+        columnIndex,
+        index
+      ) => {
+        const current =
+          String(
+            columns[
+              columnIndex
+            ] ?? ''
+          ).trim()
 
-  values.push(
-    current.trim()
-  )
+        return (
+          current ||
+          `Variable${index + 1}`
+        )
+      }
+    )
 
-  return values
+  const dataRows =
+    rows
+      .filter(
+        (
+          row
+        ) =>
+          usedIndexes.some(
+            (
+              columnIndex
+            ) =>
+              String(
+                row?.[
+                  columnIndex
+                ] ?? ''
+              ).trim() !== ''
+          )
+      )
+      .map(
+        (
+          row
+        ) =>
+          usedIndexes.map(
+            (
+              columnIndex
+            ) =>
+              row?.[
+                columnIndex
+              ] ?? ''
+          )
+      )
+
+  if (
+    !dataRows.length
+  ) {
+    throw new Error(
+      'Enter at least one data row before saving.'
+    )
+  }
+
+  const records =
+    dataRows.map(
+      (
+        row
+      ) => {
+        const record = {}
+
+        headers.forEach(
+          (
+            header,
+            index
+          ) => {
+            record[
+              header
+            ] =
+              row[
+                index
+              ] ?? ''
+          }
+        )
+
+        return record
+      }
+    )
+
+  return {
+    headers,
+    dataRows,
+    records,
+    usedIndexes,
+  }
 }
 
 
-function parseClipboardData(text) {
-  const cleanText =
-    text
-      .replace(/\r\n/g, '\n')
-      .replace(/\r/g, '\n')
-      .trim()
+// ==========================================================
+// MEASUREMENT LEVEL ICON
+// ==========================================================
 
-
-  if (!cleanText) {
-    return []
+function MeasurementIcon({
+  level,
+}) {
+  if (
+    level ===
+    'metric'
+  ) {
+    return (
+      <Ruler
+        size={14}
+        strokeWidth={2.1}
+      />
+    )
   }
 
+  if (
+    level ===
+    'ordinal'
+  ) {
+    return (
+      <BarChart3
+        size={14}
+        strokeWidth={2.1}
+      />
+    )
+  }
 
-  const lines =
-    cleanText
-      .split('\n')
-      .filter(
-        (line) =>
-          line.trim() !== ''
-      )
-
-
-  const delimiter =
-    cleanText.includes('\t')
-      ? '\t'
-      : ','
-
-
-  return lines.map(
-    (line) => {
-      if (
-        delimiter === '\t'
-      ) {
-        return line
-          .split('\t')
-          .map(
-            (value) =>
-              value.trim()
-          )
-      }
-
-
-      return parseCSVLine(
-        line,
-        ','
-      )
-    }
+  return (
+    <span
+      className="measurement-nominal-icon"
+      aria-hidden="true"
+    >
+      <i />
+      <i />
+      <i />
+    </span>
   )
 }
 
 
 // ==========================================================
-// COMPONENT
+// DATA WORKSPACE
 // ==========================================================
 
 export default function DataWorkspacePage() {
-  const navigate =
-    useNavigate()
-
-  const location =
-    useLocation()
-
   const {
     datasetId,
   } = useParams()
 
+  const [
+    searchParams,
+  ] = useSearchParams()
 
-  const isNewDataset =
-    !datasetId
+  const navigate =
+    useNavigate()
+
+  const fileInputRef =
+    useRef(null)
+
+  const autosaveTimerRef =
+    useRef(null)
+
+  const loadedRef =
+    useRef(false)
+
+  const saveInProgressRef =
+    useRef(false)
 
 
   // ========================================================
-  // EXISTING DATASET STATE
+  // CURRENT WORKFLOW
+  // ========================================================
+
+  const isNew =
+    !datasetId
+
+  const requestedMethod =
+    searchParams.get(
+      'method'
+    ) ||
+    'descriptive'
+
+  const selectedMethod =
+    searchParams.get(
+      'selected'
+    ) ||
+    ''
+
+
+  // ========================================================
+  // DATASET STATE
   // ========================================================
 
   const [
@@ -412,147 +653,95 @@ export default function DataWorkspacePage() {
   ] = useState(null)
 
   const [
+    datasetName,
+    setDatasetName,
+  ] = useState(
+    'New-SSAS-Dataset'
+  )
+
+  const [
     columns,
     setColumns,
-  ] = useState([])
+  ] = useState(
+    Array(
+      DEFAULT_COLUMNS
+    ).fill('')
+  )
 
   const [
-    previewRows,
-    setPreviewRows,
-  ] = useState([])
-
-  const [
-    variables,
-    setVariables,
-  ] = useState([])
+    rows,
+    setRows,
+  ] = useState(
+    createRows(
+      DEFAULT_ROWS,
+      DEFAULT_COLUMNS
+    )
+  )
 
   const [
     measurementLevels,
     setMeasurementLevels,
   ] = useState({})
 
-
-  // ========================================================
-  // MANUAL DATASET STATE
-  // ========================================================
-
   const [
-    newDatasetName,
-    setNewDatasetName,
-  ] = useState(
-    'New-SSAS-Dataset'
-  )
+    activeCell,
+    setActiveCell,
+  ] = useState({
+    area:
+      'header',
 
+    rowIndex:
+      0,
 
-  /*
-   * Blank column names.
-   *
-   * Column 1 / Column 2 shown in the
-   * interface are placeholders only.
-   */
-
-  const [
-    manualColumns,
-    setManualColumns,
-  ] = useState([
-    '',
-    '',
-    '',
-    '',
-    '',
-  ])
-
-
-  const [
-    manualRows,
-    setManualRows,
-  ] = useState(
-    Array.from(
-      {
-        length: 8,
-      },
-      () =>
-        Array(5).fill('')
-    )
-  )
-
-
-  /*
-   * Measurement overrides are stored
-   * by column INDEX.
-   */
-
-  const [
-    manualLevels,
-    setManualLevels,
-  ] = useState({})
+    columnIndex:
+      0,
+  })
 
 
   // ========================================================
-  // EXPORT / IMPORT MODAL
+  // SAVED DATASETS
   // ========================================================
 
   const [
-    transferModalOpen,
-    setTransferModalOpen,
+    savedDatasets,
+    setSavedDatasets,
+  ] = useState([])
+
+  const [
+    loadingSavedDatasets,
+    setLoadingSavedDatasets,
   ] = useState(false)
 
 
   // ========================================================
-  // DESCRIPTIVE STATE
-  // ========================================================
-
-  const [
-    selectedVariables,
-    setSelectedVariables,
-  ] = useState([])
-
-  const [
-    selectedStatistics,
-    setSelectedStatistics,
-  ] = useState(
-    defaultCalculations
-  )
-
-  const [
-    descriptiveResults,
-    setDescriptiveResults,
-  ] = useState({})
-
-  const [
-    fullRows,
-    setFullRows,
-  ] = useState([])
-
-  const [
-    calculationComplete,
-    setCalculationComplete,
-  ] = useState(false)
-
-  const [
-    showNormalCurve,
-    setShowNormalCurve,
-  ] = useState(true)
-
-
-  // ========================================================
-  // GENERAL STATE
+  // PAGE STATE
   // ========================================================
 
   const [
     loading,
     setLoading,
-  ] = useState(false)
-
-  const [
-    calculating,
-    setCalculating,
-  ] = useState(false)
+  ] = useState(
+    !isNew
+  )
 
   const [
     saving,
     setSaving,
   ] = useState(false)
+
+  const [
+    uploading,
+    setUploading,
+  ] = useState(false)
+
+  const [
+    saveState,
+    setSaveState,
+  ] = useState(
+    isNew
+      ? 'ready'
+      : 'loading'
+  )
 
   const [
     error,
@@ -564,1083 +753,663 @@ export default function DataWorkspacePage() {
     setSuccess,
   ] = useState('')
 
+  const [
+    transferOpen,
+    setTransferOpen,
+  ] = useState(false)
 
-  // ========================================================
-  // LOAD IMPORTED FILE INTO EDITABLE FORM
-  // ========================================================
-
-  const loadImportedFileIntoForm = (
-    matrix,
-    filename
-  ) => {
-    setError('')
-    setSuccess('')
-
-
-    if (
-      !Array.isArray(matrix) ||
-      matrix.length < 2
-    ) {
-      setError(
-        'Imported file must contain headers and at least one data row.'
-      )
-
-      return
-    }
-
-
-    const columnCount =
-      Math.max(
-        ...matrix.map(
-          (row) =>
-            row.length
-        )
-      )
-
-
-    const sourceHeaders =
-      matrix[0]
-
-
-    /*
-     * First imported row becomes the
-     * REAL variable names.
-     */
-
-    const headers =
-      Array.from(
-        {
-          length:
-            columnCount,
-        },
-        (_, index) =>
-          String(
-            sourceHeaders[
-              index
-            ] ?? ''
-          ).trim()
-      )
-
-
-    /*
-     * Everything after first row
-     * becomes cases.
-     */
-
-    const importedRows =
-      matrix
-        .slice(1)
-        .map(
-          (row) =>
-            Array.from(
-              {
-                length:
-                  columnCount,
-              },
-              (_, index) =>
-                row[index] ?? ''
-            )
-        )
-        .filter(
-          (row) =>
-            row.some(
-              (value) =>
-                String(
-                  value ?? ''
-                ).trim() !== ''
-            )
-        )
-
-
-    if (
-      !importedRows.length
-    ) {
-      setError(
-        'The imported file contains no data rows.'
-      )
-
-      return
-    }
-
-
-    /*
-     * Keep at least eight rows visible
-     * for additional manual entry.
-     */
-
-    const visibleRows =
-      Math.max(
-        importedRows.length,
-        8
-      )
-
-
-    const displayRows =
-      Array.from(
-        {
-          length:
-            visibleRows,
-        },
-        (_, index) =>
-          importedRows[index] ||
-          Array(
-            columnCount
-          ).fill('')
-      )
-
-
-    setManualColumns(
-      headers
-    )
-
-    setManualRows(
-      displayRows
-    )
-
-
-    /*
-     * Clear previous measurement
-     * overrides.
-     *
-     * SSAS will auto-detect each column
-     * using actual observation values.
-     */
-
-    setManualLevels({})
-
-
-    const baseName =
-      String(
-        filename ||
-        'Imported-Dataset'
-      )
-        .replace(
-          /\.[^/.]+$/,
-          ''
-        )
-        .trim()
-
-
-    setNewDatasetName(
-      baseName ||
-      'Imported-Dataset'
-    )
-
-
-    setCalculationComplete(
-      false
-    )
-
-
-    setSuccess(
-      `Imported ${importedRows.length} cases and ${columnCount} variables into the SSAS form. Review the measurement levels and press Save Dataset when ready.`
-    )
-  }
+  const [
+    settingsOpen,
+    setSettingsOpen,
+  ] = useState(false)
 
 
   // ========================================================
-  // IMPORT FROM MODAL
+  // WORKFLOW QUERY
   // ========================================================
 
-  const handleTransferImport = (
-    matrix,
-    filename
-  ) => {
-    /*
-     * When importing while already on
-     * /datasets/new, populate the form.
-     */
+  const workflowQuery =
+    () => {
+      const params =
+        new URLSearchParams()
 
-    if (isNewDataset) {
-      loadImportedFileIntoForm(
-        matrix,
-        filename
+      params.set(
+        'method',
+        requestedMethod
       )
 
-      return
-    }
-
-
-    /*
-     * If user imports while viewing an
-     * existing dataset, switch to the
-     * new-data form and carry the file
-     * data through React Router state.
-     */
-
-    navigate(
-      '/datasets/new',
-      {
-        state: {
-          importedMatrix:
-            matrix,
-
-          importedFilename:
-            filename,
-        },
+      if (
+        selectedMethod
+      ) {
+        params.set(
+          'selected',
+          selectedMethod
+        )
       }
-    )
-  }
 
-
-  // ========================================================
-  // RECEIVE IMPORT AFTER NAVIGATION
-  // ========================================================
-
-  useEffect(() => {
-    if (
-      !isNewDataset ||
-      !location.state
-        ?.importedMatrix
-    ) {
-      return
+      return params.toString()
     }
 
 
-    loadImportedFileIntoForm(
-      location
-        .state
-        .importedMatrix,
+  // ========================================================
+  // NAVIGATE TO PREPARE
+  // ========================================================
 
-      location
-        .state
-        .importedFilename
-    )
+  const goToPrepare =
+    (
+      id
+    ) => {
+      navigate(
+        `/datasets/${id}/prepare?${workflowQuery()}`
+      )
+    }
 
 
-    /*
-     * Remove temporary router state
-     * after it has been consumed.
-     */
+  // ========================================================
+  // OPEN SAVED DATASET
+  // ========================================================
 
-    navigate(
-      '/datasets/new',
-      {
-        replace: true,
-        state: null,
+  const openSavedDataset =
+    (
+      id
+    ) => {
+      setTransferOpen(
+        false
+      )
+
+      navigate(
+        `/datasets/${id}/workspace?${workflowQuery()}`
+      )
+    }
+
+
+  // ========================================================
+  // LOAD SAVED DATASETS
+  // ========================================================
+
+  const loadSavedDatasets =
+    async () => {
+      setLoadingSavedDatasets(
+        true
+      )
+
+      try {
+        const response =
+          await api.get(
+            '/datasets'
+          )
+
+        setSavedDatasets(
+          response
+            .data
+            ?.datasets ||
+          []
+        )
+
+      } catch (
+        err
+      ) {
+        console.error(
+          'Unable to load saved datasets:',
+          err
+        )
+
+      } finally {
+        setLoadingSavedDatasets(
+          false
+        )
       }
-    )
+    }
 
-  }, [
-    isNewDataset,
-    location.state,
-    navigate,
-  ])
+
+  useEffect(
+    () => {
+      loadSavedDatasets()
+    },
+    []
+  )
+
+
+  // ========================================================
+  // RESET TO NEW DATASET
+  // ========================================================
+
+  const resetNewSheet =
+    () => {
+      if (
+        autosaveTimerRef.current
+      ) {
+        window.clearTimeout(
+          autosaveTimerRef.current
+        )
+      }
+
+      loadedRef.current =
+        false
+
+      setDataset(
+        null
+      )
+
+      setDatasetName(
+        'New-SSAS-Dataset'
+      )
+
+      setColumns(
+        Array(
+          DEFAULT_COLUMNS
+        ).fill('')
+      )
+
+      setRows(
+        createRows(
+          DEFAULT_ROWS,
+          DEFAULT_COLUMNS
+        )
+      )
+
+      setMeasurementLevels(
+        {}
+      )
+
+      setActiveCell({
+        area:
+          'header',
+
+        rowIndex:
+          0,
+
+        columnIndex:
+          0,
+      })
+
+      setSaveState(
+        'ready'
+      )
+
+      setError(
+        ''
+      )
+
+      setSuccess(
+        ''
+      )
+    }
+
+
+  // ========================================================
+  // ENTER NEW DATA
+  // ========================================================
+
+  const enterNewData =
+    () => {
+      resetNewSheet()
+
+      setTransferOpen(
+        false
+      )
+
+      setSettingsOpen(
+        false
+      )
+
+      if (
+        datasetId
+      ) {
+        navigate(
+          `/datasets?${workflowQuery()}`
+        )
+      }
+    }
 
 
   // ========================================================
   // LOAD EXISTING DATASET
   // ========================================================
 
-  useEffect(() => {
-    if (!datasetId) {
-      return
-    }
-
-
-    const loadWorkspace =
-      async () => {
-        setLoading(true)
-        setError('')
-
-
-        try {
-          const [
-            datasetResponse,
-            dataResponse,
-            variableResponse,
-          ] =
-            await Promise.all([
-              api.get(
-                `/datasets/${datasetId}`
-              ),
-
-              api.get(
-                `/datasets/${datasetId}/data`,
-                {
-                  params: {
-                    limit: 100,
-                  },
-                }
-              ),
-
-              api.get(
-                `/datasets/${datasetId}/variables`
-              ),
-            ])
-
-
-          setDataset(
-            datasetResponse.data
-          )
-
-
-          setColumns(
-            dataResponse
-              .data
-              .columns ||
-            []
-          )
-
-
-          setPreviewRows(
-            dataResponse
-              .data
-              .rows ||
-            []
-          )
-
-
-          const variableData =
-            variableResponse
-              .data
-              .variables ||
-            []
-
-
-          setVariables(
-            variableData
-          )
-
-
-          const detected = {}
-
-
-          variableData.forEach(
-            (variable) => {
-              detected[
-                variable.name
-              ] =
-                variable
-                  .measurement_level ||
-                'nominal'
-            }
-          )
-
-
-          setMeasurementLevels(
-            detected
-          )
-
-        } catch (err) {
-          setError(
-            getErrorMessage(err)
-          )
-
-        } finally {
-          setLoading(false)
-        }
-      }
-
-
-    loadWorkspace()
-
-  }, [datasetId])
-
-
-  // ========================================================
-  // VARIABLE GROUPS
-  // ========================================================
-
-  const usableVariables =
-    useMemo(
-      () =>
-        variables.filter(
-          (variable) => {
-            const role =
-              variable.semantic_role
-
-            return (
-              role !== 'datetime' &&
-              role !== 'identifier' &&
-              role !== 'ignored'
-            )
-          }
-        ),
-      [variables]
-    )
-
-
-  const metricVariables =
-    usableVariables.filter(
-      (variable) =>
-        measurementLevels[
-          variable.name
-        ] === 'metric'
-    )
-
-
-  const ordinalVariables =
-    usableVariables.filter(
-      (variable) =>
-        measurementLevels[
-          variable.name
-        ] === 'ordinal'
-    )
-
-
-  const nominalVariables =
-    usableVariables.filter(
-      (variable) =>
-        measurementLevels[
-          variable.name
-        ] === 'nominal'
-    )
-
-
-  // ========================================================
-  // EXISTING DATASET MEASUREMENT LEVEL
-  // ========================================================
-
-  const updateMeasurementLevel =
-    async (
-      column,
-      newLevel
-    ) => {
-      setMeasurementLevels(
-        (previous) => ({
-          ...previous,
-          [column]:
-            newLevel,
-        })
-      )
-
-
-      try {
-        await api.patch(
-          `/datasets/${datasetId}/variables/${encodeURIComponent(column)}`,
-          {
-            measurement_level:
-              newLevel,
-          }
-        )
-
-
-        setSuccess(
-          `${column} set to ${newLevel}.`
-        )
-
-      } catch (err) {
-        setError(
-          getErrorMessage(err)
-        )
-      }
-    }
-
-
-  // ========================================================
-  // UPDATE MANUAL CELL
-  // ========================================================
-
-  const updateManualCell = (
-    rowIndex,
-    columnIndex,
-    value
-  ) => {
-    setManualRows(
-      (previous) => {
-        const copy =
-          previous.map(
-            (row) => [
-              ...row,
-            ]
-          )
-
-
-        copy[
-          rowIndex
-        ][
-          columnIndex
-        ] = value
-
-
-        return copy
-      }
-    )
-  }
-
-
-  // ========================================================
-  // UPDATE MANUAL HEADER
-  // ========================================================
-
-  const updateManualColumn = (
-    columnIndex,
-    value
-  ) => {
-    setManualColumns(
-      (previous) =>
-        previous.map(
-          (column, index) =>
-            index ===
-            columnIndex
-              ? value
-              : column
-        )
-    )
-  }
-
-
-  // ========================================================
-  // UPDATE MANUAL MEASUREMENT LEVEL
-  // ========================================================
-
-  const updateManualLevel = (
-    columnIndex,
-    value
-  ) => {
-    setManualLevels(
-      (previous) => ({
-        ...previous,
-
-        [columnIndex]:
-          value,
-      })
-    )
-  }
-
-
-  // ========================================================
-  // ADD CASE
-  // ========================================================
-
-  const addManualRow = () => {
-    setManualRows(
-      (previous) => [
-        ...previous,
-
-        Array(
-          manualColumns.length
-        ).fill(''),
-      ]
-    )
-  }
-
-
-  // ========================================================
-  // DELETE CASE
-  // ========================================================
-
-  const deleteManualRow = (
-    rowIndex
-  ) => {
-    setManualRows(
-      (previous) => {
-        let next =
-          previous.filter(
-            (_, index) =>
-              index !==
-              rowIndex
-          )
-
-
-        if (!next.length) {
-          next = [
-            Array(
-              manualColumns.length
-            ).fill(''),
-          ]
-        }
-
-
-        return next
-      }
-    )
-
-
-    setError('')
-
-    setSuccess(
-      `Case ${
-        rowIndex + 1
-      } removed.`
-    )
-  }
-
-
-  // ========================================================
-  // ADD VARIABLE
-  // ========================================================
-
-  const addManualColumn = () => {
-    setManualColumns(
-      (previous) => [
-        ...previous,
-        '',
-      ]
-    )
-
-
-    setManualRows(
-      (previous) =>
-        previous.map(
-          (row) => [
-            ...row,
-            '',
-          ]
-        )
-    )
-  }
-
-
-  // ========================================================
-  // PASTE COMPLETE TABLE INTO HEADER
-  // ========================================================
-
-  const pasteDatasetFromHeader = (
-    event,
-    startColumnIndex
-  ) => {
-    event.preventDefault()
-
-    setError('')
-    setSuccess('')
-
-
-    const clipboardText =
-      event.clipboardData
-        .getData(
-          'text/plain'
-        )
-
-
-    const matrix =
-      parseClipboardData(
-        clipboardText
-      )
-
-
-    if (!matrix.length) {
-      return
-    }
-
-
-    const pastedHeaders =
-      matrix[0]
-
-    const pastedData =
-      matrix.slice(1)
-
-
-    const maximumWidth =
-      Math.max(
-        ...matrix.map(
-          (row) =>
-            row.length
-        )
-      )
-
-
-    const requiredColumns =
-      startColumnIndex +
-      maximumWidth
-
-
-    const newColumns = [
-      ...manualColumns,
-    ]
-
-
-    while (
-      newColumns.length <
-      requiredColumns
-    ) {
-      newColumns.push('')
-    }
-
-
-    pastedHeaders.forEach(
-      (
-        value,
-        pastedColumnIndex
-      ) => {
-        const targetColumn =
-          startColumnIndex +
-          pastedColumnIndex
-
-
-        newColumns[
-          targetColumn
-        ] =
-          String(
-            value ?? ''
-          ).trim()
-      }
-    )
-
-
-    const requiredRows =
-      Math.max(
-        manualRows.length,
-        pastedData.length
-      )
-
-
-    const newRows =
-      Array.from(
-        {
-          length:
-            requiredRows,
-        },
-        (_, rowIndex) => {
-          const existing =
-            manualRows[
-              rowIndex
-            ] || []
-
-
-          return Array.from(
-            {
-              length:
-                newColumns.length,
-            },
-            (_, columnIndex) =>
-              existing[
-                columnIndex
-              ] ?? ''
-          )
-        }
-      )
-
-
-    pastedData.forEach(
-      (
-        pastedRow,
-        pastedRowIndex
-      ) => {
-        pastedRow.forEach(
-          (
-            value,
-            pastedColumnIndex
-          ) => {
-            const targetColumn =
-              startColumnIndex +
-              pastedColumnIndex
-
-
-            newRows[
-              pastedRowIndex
-            ][
-              targetColumn
-            ] = value
-          }
-        )
-      }
-    )
-
-
-    setManualColumns(
-      newColumns
-    )
-
-    setManualRows(
-      newRows
-    )
-
-    setManualLevels({})
-
-
-    setSuccess(
-      `Pasted ${pastedData.length} cases and ${pastedHeaders.length} variables. Measurement levels were automatically detected.`
-    )
-  }
-
-
-  // ========================================================
-  // PASTE INTO DATA CELLS
-  // ========================================================
-
-  const pasteIntoDataCells = (
-    event,
-    startRowIndex,
-    startColumnIndex
-  ) => {
-    const headersAreBlank =
-      manualColumns.every(
-        (column) =>
-          String(
-            column
-          ).trim() === ''
-      )
-
-
-    /*
-     * When pasting a complete table
-     * into Case 1 of a blank form,
-     * use first row as headers.
-     */
-
-    if (
-      startRowIndex === 0 &&
-      headersAreBlank
-    ) {
-      pasteDatasetFromHeader(
-        event,
-        startColumnIndex
-      )
-
-      return
-    }
-
-
-    event.preventDefault()
-
-    setError('')
-    setSuccess('')
-
-
-    const clipboardText =
-      event.clipboardData
-        .getData(
-          'text/plain'
-        )
-
-
-    const matrix =
-      parseClipboardData(
-        clipboardText
-      )
-
-
-    if (!matrix.length) {
-      return
-    }
-
-
-    const maximumWidth =
-      Math.max(
-        ...matrix.map(
-          (row) =>
-            row.length
-        )
-      )
-
-
-    const requiredColumns =
-      startColumnIndex +
-      maximumWidth
-
-
-    const newColumns = [
-      ...manualColumns,
-    ]
-
-
-    while (
-      newColumns.length <
-      requiredColumns
-    ) {
-      newColumns.push('')
-    }
-
-
-    const requiredRows =
-      Math.max(
-        manualRows.length,
-
-        startRowIndex +
-        matrix.length
-      )
-
-
-    const newRows =
-      Array.from(
-        {
-          length:
-            requiredRows,
-        },
-        (_, rowIndex) => {
-          const existing =
-            manualRows[
-              rowIndex
-            ] || []
-
-
-          return Array.from(
-            {
-              length:
-                newColumns.length,
-            },
-            (_, columnIndex) =>
-              existing[
-                columnIndex
-              ] ?? ''
-          )
-        }
-      )
-
-
-    matrix.forEach(
-      (
-        pastedRow,
-        pastedRowIndex
-      ) => {
-        pastedRow.forEach(
-          (
-            value,
-            pastedColumnIndex
-          ) => {
-            const targetRow =
-              startRowIndex +
-              pastedRowIndex
-
-
-            const targetColumn =
-              startColumnIndex +
-              pastedColumnIndex
-
-
-            newRows[
-              targetRow
-            ][
-              targetColumn
-            ] = value
-          }
-        )
-      }
-    )
-
-
-    setManualColumns(
-      newColumns
-    )
-
-    setManualRows(
-      newRows
-    )
-
-
-    setSuccess(
-      `${matrix.length} case(s) pasted into the spreadsheet.`
-    )
-  }
-
-
-  // ========================================================
-  // SAVE MANUAL DATASET
-  // ========================================================
-
-  const saveManualDataset =
+  const loadExistingDataset =
     async () => {
-      setSaving(true)
-      setError('')
-      setSuccess('')
+      if (
+        isNew
+      ) {
+        resetNewSheet()
 
+        return
+      }
+
+      setLoading(
+        true
+      )
+
+      setError(
+        ''
+      )
+
+      loadedRef.current =
+        false
 
       try {
-        const headers =
-          manualColumns.map(
-            (column, index) => {
-              const clean =
-                String(
-                  column
-                ).trim()
+        const [
+          datasetResponse,
+          variableResponse,
+        ] =
+          await Promise.all([
+            api.get(
+              `/datasets/${datasetId}`
+            ),
 
-              return (
-                clean ||
-                `Column${index + 1}`
-              )
-            }
+            api.get(
+              `/datasets/${datasetId}/variables`
+            ),
+          ])
+
+        const allRows = []
+
+        let loadedColumns = []
+
+        let offset = 0
+
+        const limit = 5000
+
+        let hasMore = true
+
+        while (
+          hasMore
+        ) {
+          const response =
+            await api.get(
+              `/datasets/${datasetId}/data`,
+              {
+                params: {
+                  offset,
+                  limit,
+                },
+              }
+            )
+
+          const pageData =
+            response.data ||
+            {}
+
+          if (
+            !loadedColumns.length
+          ) {
+            loadedColumns =
+              pageData.columns ||
+              []
+          }
+
+          allRows.push(
+            ...(
+              pageData.rows ||
+              []
+            )
           )
 
+          const returnedRows =
+            pageData.returned_rows ??
+            pageData.rows?.length ??
+            0
 
-        const normalizedHeaders =
-          headers.map(
-            (header) =>
-              header
-                .trim()
-                .toLowerCase()
-          )
+          hasMore =
+            Boolean(
+              pageData.has_more
+            )
 
+          offset +=
+            returnedRows
+
+          if (
+            !returnedRows
+          ) {
+            break
+          }
+        }
 
         if (
-          new Set(
-            normalizedHeaders
-          ).size !==
-          normalizedHeaders.length
+          !loadedColumns.length
         ) {
-          throw new Error(
-            'Variable names must be unique.'
-          )
+          loadedColumns =
+            datasetResponse
+              .data
+              ?.columns ||
+            []
         }
 
+        const visibleColumnCount =
+          Math.max(
+            loadedColumns.length,
+            DEFAULT_COLUMNS
+          )
 
-        const dataRows =
-          manualRows.filter(
-            (row) =>
-              row.some(
-                (value) =>
-                  String(
-                    value
-                  ).trim() !== ''
+        const paddedColumns =
+          Array.from(
+            {
+              length:
+                visibleColumnCount,
+            },
+            (
+              _,
+              index
+            ) =>
+              loadedColumns[
+                index
+              ] ??
+              ''
+          )
+
+        const gridRows =
+          allRows.map(
+            (
+              record
+            ) =>
+              paddedColumns.map(
+                (
+                  column
+                ) => {
+                  if (
+                    !column
+                  ) {
+                    return ''
+                  }
+
+                  return (
+                    record?.[
+                      column
+                    ] ??
+                    ''
+                  )
+                }
               )
           )
 
+        const minimumRows =
+          Math.max(
+            gridRows.length +
+              4,
+            DEFAULT_ROWS
+          )
 
-        if (!dataRows.length) {
-          throw new Error(
-            'Enter at least one row before saving.'
+        const paddedRows =
+          Array.from(
+            {
+              length:
+                minimumRows,
+            },
+            (
+              _,
+              index
+            ) =>
+              gridRows[
+                index
+              ] ||
+              Array(
+                visibleColumnCount
+              ).fill('')
+          )
+
+        setDataset(
+          datasetResponse.data
+        )
+
+        setDatasetName(
+          String(
+            datasetResponse
+              .data
+              ?.original_filename ||
+            datasetResponse
+              .data
+              ?.filename ||
+            'Dataset'
+          ).replace(
+            /\.[^/.]+$/,
+            ''
+          )
+        )
+
+        setColumns(
+          paddedColumns
+        )
+
+        setRows(
+          paddedRows
+        )
+
+        const levels = {}
+
+        const variables =
+          variableResponse
+            .data
+            ?.variables ||
+          []
+
+        variables.forEach(
+          (
+            variable
+          ) => {
+            levels[
+              variable.name
+            ] =
+              variable
+                .measurement_level ||
+              'nominal'
+          }
+        )
+
+        setMeasurementLevels(
+          levels
+        )
+
+        setSaveState(
+          'saved'
+        )
+
+        window.setTimeout(
+          () => {
+            loadedRef.current =
+              true
+          },
+          150
+        )
+
+      } catch (
+        err
+      ) {
+        setError(
+          getErrorMessage(
+            err
+          )
+        )
+
+        setSaveState(
+          'failed'
+        )
+
+      } finally {
+        setLoading(
+          false
+        )
+      }
+    }
+
+
+  useEffect(
+    () => {
+      loadExistingDataset()
+
+      return () => {
+        if (
+          autosaveTimerRef.current
+        ) {
+          window.clearTimeout(
+            autosaveTimerRef.current
           )
         }
+      }
+    },
+    [
+      datasetId,
+    ]
+  )
 
+
+  // ========================================================
+  // SAVE MEASUREMENT LEVELS
+  // ========================================================
+
+  const saveMeasurementLevels =
+    async (
+      id,
+      headers,
+      dataRows
+    ) => {
+      for (
+        let index = 0;
+        index < headers.length;
+        index += 1
+      ) {
+        const header =
+          headers[
+            index
+          ]
+
+        const detected =
+          detectMeasurementLevel(
+            dataRows.map(
+              (
+                row
+              ) =>
+                row[
+                  index
+                ]
+            )
+          )
+
+        const level =
+          measurementLevels[
+            header
+          ] ||
+          detected
+
+        try {
+          await api.patch(
+            `/datasets/${id}/variables/${encodeURIComponent(header)}`,
+            {
+              measurement_level:
+                level,
+            }
+          )
+
+        } catch (
+          err
+        ) {
+          console.warn(
+            `Unable to save measurement level for ${header}`,
+            err
+          )
+        }
+      }
+    }
+
+
+  // ========================================================
+  // UPLOAD A GRID AS A NEW DATASET
+  // ========================================================
+
+  const uploadGrid =
+    async (
+      gridColumns,
+      gridRows,
+      {
+        redirect = true,
+      } = {}
+    ) => {
+      if (
+        saveInProgressRef.current
+      ) {
+        return null
+      }
+
+      saveInProgressRef.current =
+        true
+
+      setSaving(
+        true
+      )
+
+      setSaveState(
+        'saving'
+      )
+
+      setError(
+        ''
+      )
+
+      try {
+        const normalized =
+          normalizeGrid(
+            gridColumns,
+            gridRows
+          )
 
         const csv = [
-          headers
-            .map(escapeCSV)
+          normalized
+            .headers
+            .map(
+              escapeCSV
+            )
             .join(','),
 
-          ...dataRows.map(
-            (row) =>
-              headers
-                .map(
-                  (_, index) =>
-                    escapeCSV(
-                      row[index] ?? ''
-                    )
-                )
-                .join(',')
-          ),
-        ].join('\n')
-
+          ...normalized
+            .dataRows
+            .map(
+              (
+                row
+              ) =>
+                row
+                  .map(
+                    escapeCSV
+                  )
+                  .join(',')
+            ),
+        ].join(
+          '\n'
+        )
 
         let filename =
-          newDatasetName.trim()
-
-
-        if (!filename) {
-          filename =
-            'New-SSAS-Dataset'
-        }
-
+          datasetName.trim() ||
+          'New-SSAS-Dataset'
 
         if (
           !filename
             .toLowerCase()
-            .endsWith('.csv')
+            .endsWith(
+              '.csv'
+            )
         ) {
-          filename += '.csv'
+          filename +=
+            '.csv'
         }
-
 
         const file =
           new File(
-            [csv],
+            [
+              csv,
+            ],
             filename,
             {
-              type: 'text/csv',
+              type:
+                'text/csv',
             }
           )
 
-
         const formData =
           new FormData()
-
 
         formData.append(
           'file',
           file
         )
-
 
         const response =
           await api.post(
@@ -1648,270 +1417,1215 @@ export default function DataWorkspacePage() {
             formData
           )
 
+        const newId =
+          response
+            .data
+            ?.id
 
-        const newDatasetId =
-          response.data.id
-
-
-        /*
-         * Save Metric / Ordinal /
-         * Nominal classifications.
-         */
-
-        for (
-          let index = 0;
-          index <
-          headers.length;
-          index += 1
+        if (
+          !newId
         ) {
-          const column =
-            headers[index]
-
-
-          const automaticLevel =
-            detectManualLevel(
-              dataRows.map(
-                (row) =>
-                  row[index]
-              )
-            )
-
-
-          const level =
-            manualLevels[index] ||
-            automaticLevel
-
-
-          await api.patch(
-            `/datasets/${newDatasetId}/variables/${encodeURIComponent(column)}`,
-            {
-              measurement_level:
-                level,
-            }
+          throw new Error(
+            'SSAS did not return the new dataset ID.'
           )
         }
 
-
-        navigate(
-          `/datasets/${newDatasetId}/workspace`
+        await saveMeasurementLevels(
+          newId,
+          normalized.headers,
+          normalized.dataRows
         )
 
-      } catch (err) {
+        setSaveState(
+          'saved'
+        )
+
+        await loadSavedDatasets()
+
+        if (
+          redirect
+        ) {
+          goToPrepare(
+            newId
+          )
+        }
+
+        return newId
+
+      } catch (
+        err
+      ) {
+        setSaveState(
+          'failed'
+        )
+
         setError(
-          getErrorMessage(err)
+          getErrorMessage(
+            err
+          )
         )
+
+        return null
 
       } finally {
-        setSaving(false)
+        setSaving(
+          false
+        )
+
+        saveInProgressRef.current =
+          false
       }
     }
 
 
   // ========================================================
-  // SELECT VARIABLE
+  // CREATE CURRENT NEW DATASET
   // ========================================================
 
-  const toggleVariable = (
-    column
-  ) => {
-    setSelectedVariables(
-      (previous) =>
-        previous.includes(
-          column
-        )
-          ? previous.filter(
-              (item) =>
-                item !==
-                column
-            )
-          : [
-              ...previous,
-              column,
-            ]
-    )
-
-
-    setCalculationComplete(
-      false
-    )
-  }
-
-
-  // ========================================================
-  // CALCULATE DESCRIPTIVE STATISTICS
-  // ========================================================
-
-  const calculateDescriptive =
-    async () => {
-      if (
-        !selectedVariables.length
-      ) {
-        setError(
-          'Select at least one Metric variable.'
-        )
-
-        return
-      }
-
-
-      const selectedMetric =
-        selectedVariables.filter(
-          (column) =>
-            measurementLevels[
-              column
-            ] === 'metric'
-        )
-
-
-      if (
-        !selectedMetric.length
-      ) {
-        setError(
-          'Descriptive numerical statistics require at least one Metric variable.'
-        )
-
-        return
-      }
-
-
-      setCalculating(true)
-      setError('')
-      setSuccess('')
-
-
-      try {
-        const [
-          statisticsResponse,
-          rowsResponse,
-        ] =
-          await Promise.all([
-            api.get(
-              `/statistics/descriptive/${datasetId}`
-            ),
-
-            api.get(
-              `/datasets/${datasetId}/data`,
-              {
-                params: {
-                  limit: 5000,
-                },
-              }
-            ),
-          ])
-
-
-        const allResults =
-          statisticsResponse
-            .data
-            .results ||
-          {}
-
-
-        const filteredResults = {}
-
-
-        selectedMetric.forEach(
-          (column) => {
-            if (
-              allResults[column]
-            ) {
-              filteredResults[
-                column
-              ] =
-                allResults[column]
-            }
-          }
-        )
-
-
-        setDescriptiveResults(
-          filteredResults
-        )
-
-
-        setFullRows(
-          rowsResponse
-            .data
-            .rows ||
-          []
-        )
-
-
-        setCalculationComplete(
-          true
-        )
-
-
-        setSuccess(
-          'Descriptive analysis completed successfully.'
-        )
-
-      } catch (err) {
-        setError(
-          getErrorMessage(err)
-        )
-
-      } finally {
-        setCalculating(false)
-      }
-    }
-
-
-  // ========================================================
-  // FORMAT RESULT
-  // ========================================================
-
-  const resultValue = (
-    result,
-    key
-  ) => {
-    if (
-      key ===
-      'confidence_interval_95'
-    ) {
-      const interval =
-        result[
-          'confidence_interval_95'
-        ]
-
-
-      if (!interval) {
-        return '—'
-      }
-
-
-      return (
-        `${formatNumber(
-          interval.lower
-        )} – ${formatNumber(
-          interval.upper
-        )}`
+  const createDataset =
+    async (
+      {
+        redirect = true,
+      } = {}
+    ) => {
+      return uploadGrid(
+        columns,
+        rows,
+        {
+          redirect,
+        }
       )
     }
 
 
-    return formatNumber(
-      result[key]
-    )
-  }
+  // ========================================================
+  // SAVE GRID DIRECTLY TO EXISTING DATASET
+  // ========================================================
+
+  const saveGridToExisting =
+    async (
+      id,
+      gridColumns,
+      gridRows,
+      {
+        silent = false,
+      } = {}
+    ) => {
+      if (
+        saveInProgressRef.current
+      ) {
+        return false
+      }
+
+      saveInProgressRef.current =
+        true
+
+      setSaving(
+        true
+      )
+
+      setSaveState(
+        'saving'
+      )
+
+      if (
+        !silent
+      ) {
+        setError(
+          ''
+        )
+
+        setSuccess(
+          ''
+        )
+      }
+
+      try {
+        const normalized =
+          normalizeGrid(
+            gridColumns,
+            gridRows
+          )
+
+        await api.put(
+          `/datasets/${id}/data`,
+          {
+            columns:
+              normalized.headers,
+
+            rows:
+              normalized.records,
+          }
+        )
+
+        await saveMeasurementLevels(
+          id,
+          normalized.headers,
+          normalized.dataRows
+        )
+
+        setSaveState(
+          'saved'
+        )
+
+        if (
+          !silent
+        ) {
+          setSuccess(
+            'Dataset saved.'
+          )
+        }
+
+        return true
+
+      } catch (
+        err
+      ) {
+        setSaveState(
+          'failed'
+        )
+
+        if (
+          !silent
+        ) {
+          setError(
+            getErrorMessage(
+              err
+            )
+          )
+        }
+
+        return false
+
+      } finally {
+        setSaving(
+          false
+        )
+
+        saveInProgressRef.current =
+          false
+      }
+    }
 
 
   // ========================================================
-  // EXPORT ROWS FOR MODAL
+  // SAVE CURRENT EXISTING DATASET
   // ========================================================
 
-  const transferExportRows =
-    isNewDataset
-      ? manualRows
-      : columns.length
-        ? previewRows.map(
-            (row) =>
-              columns.map(
-                (column) =>
-                  row[column] ?? ''
+  const saveExistingDataset =
+    async (
+      {
+        silent = false,
+      } = {}
+    ) => {
+      if (
+        !datasetId
+      ) {
+        return false
+      }
+
+      return saveGridToExisting(
+        datasetId,
+        columns,
+        rows,
+        {
+          silent,
+        }
+      )
+    }
+
+
+  // ========================================================
+  // AUTOSAVE EXISTING DATASET
+  // ========================================================
+
+  useEffect(
+    () => {
+      if (
+        isNew ||
+        !loadedRef.current ||
+        loading
+      ) {
+        return
+      }
+
+      setSaveState(
+        'unsaved'
+      )
+
+      if (
+        autosaveTimerRef.current
+      ) {
+        window.clearTimeout(
+          autosaveTimerRef.current
+        )
+      }
+
+      autosaveTimerRef.current =
+        window.setTimeout(
+          () => {
+            saveExistingDataset({
+              silent:
+                true,
+            })
+          },
+          AUTOSAVE_DELAY
+        )
+
+      return () => {
+        if (
+          autosaveTimerRef.current
+        ) {
+          window.clearTimeout(
+            autosaveTimerRef.current
+          )
+        }
+      }
+    },
+    [
+      columns,
+      rows,
+      measurementLevels,
+    ]
+  )
+
+
+  // ========================================================
+  // UPDATE DATA CELL
+  // ========================================================
+
+  const updateCell =
+    (
+      rowIndex,
+      columnIndex,
+      value
+    ) => {
+      setRows(
+        (
+          previous
+        ) => {
+          const next =
+            previous.map(
+              (
+                row
+              ) => [
+                ...row,
+              ]
+            )
+
+          if (
+            !next[
+              rowIndex
+            ]
+          ) {
+            next[
+              rowIndex
+            ] =
+              Array(
+                columns.length
+              ).fill('')
+          }
+
+          next[
+            rowIndex
+          ][
+            columnIndex
+          ] =
+            value
+
+          return next
+        }
+      )
+    }
+
+
+  // ========================================================
+  // UPDATE VARIABLE NAME
+  // ========================================================
+
+  const updateColumn =
+    (
+      columnIndex,
+      value
+    ) => {
+      setColumns(
+        (
+          previous
+        ) =>
+          previous.map(
+            (
+              column,
+              index
+            ) =>
+              index ===
+              columnIndex
+                ? value
+                : column
+          )
+      )
+    }
+
+
+  // ========================================================
+  // UPDATE MEASUREMENT LEVEL
+  // ========================================================
+
+  const updateMeasurementLevel =
+    (
+      column,
+      value
+    ) => {
+      if (
+        !column
+      ) {
+        return
+      }
+
+      setMeasurementLevels(
+        (
+          previous
+        ) => ({
+          ...previous,
+
+          [column]:
+            value,
+        })
+      )
+    }
+
+
+  // ========================================================
+  // ADD CASE
+  // ========================================================
+
+  const addRow =
+    () => {
+      setRows(
+        (
+          previous
+        ) => [
+          ...previous,
+
+          Array(
+            columns.length
+          ).fill(''),
+        ]
+      )
+    }
+
+
+  // ========================================================
+  // DELETE CASE
+  // ========================================================
+
+  const deleteRow =
+    (
+      rowIndex
+    ) => {
+      setRows(
+        (
+          previous
+        ) => {
+          const next =
+            previous.filter(
+              (
+                _,
+                index
+              ) =>
+                index !==
+                rowIndex
+            )
+
+          if (
+            next.length
+          ) {
+            return next
+          }
+
+          return [
+            Array(
+              columns.length
+            ).fill(''),
+          ]
+        }
+      )
+    }
+
+
+  // ========================================================
+  // ADD VARIABLE
+  // ========================================================
+
+  const addColumn =
+    () => {
+      setColumns(
+        (
+          previous
+        ) => [
+          ...previous,
+          '',
+        ]
+      )
+
+      setRows(
+        (
+          previous
+        ) =>
+          previous.map(
+            (
+              row
+            ) => [
+              ...row,
+              '',
+            ]
+          )
+      )
+    }
+
+
+  // ========================================================
+  // FULL DATASET PASTE
+  // ========================================================
+
+  const applyFullDatasetPaste =
+    async (
+      matrix
+    ) => {
+      if (
+        matrix.length <
+        2
+      ) {
+        setError(
+          'Paste a header row and at least one data row.'
+        )
+
+        return
+      }
+
+      const headerRow =
+        matrix[
+          0
+        ] ||
+        []
+
+      const dataRows =
+        matrix
+          .slice(
+            1
+          )
+          .filter(
+            (
+              row
+            ) =>
+              Array.isArray(
+                row
+              ) &&
+              row.some(
+                (
+                  value
+                ) =>
+                  String(
+                    value ?? ''
+                  ).trim() !== ''
               )
           )
-        : []
+
+      const widths =
+        dataRows.map(
+          (
+            row
+          ) =>
+            row.length
+        )
+
+      const width =
+        Math.max(
+          headerRow.length,
+          ...widths,
+          0
+        )
+
+      if (
+        !width ||
+        !dataRows.length
+      ) {
+        setError(
+          'No complete dataset was found in the pasted content.'
+        )
+
+        return
+      }
+
+      const visibleWidth =
+        Math.max(
+          width,
+          DEFAULT_COLUMNS
+        )
+
+      const nextColumns =
+        Array.from(
+          {
+            length:
+              visibleWidth,
+          },
+          (
+            _,
+            index
+          ) =>
+            index < width
+              ? String(
+                  headerRow[
+                    index
+                  ] ?? ''
+                ).trim()
+              : ''
+        )
+
+      const nextDataRows =
+        dataRows.map(
+          (
+            sourceRow
+          ) =>
+            Array.from(
+              {
+                length:
+                  visibleWidth,
+              },
+              (
+                _,
+                index
+              ) =>
+                index < width
+                  ? String(
+                      sourceRow[
+                        index
+                      ] ?? ''
+                    )
+                  : ''
+            )
+        )
+
+      const nextRows = [
+        ...nextDataRows,
+
+        ...createRows(
+          4,
+          visibleWidth
+        ),
+      ]
+
+      setColumns(
+        nextColumns
+      )
+
+      setRows(
+        nextRows
+      )
+
+      setMeasurementLevels(
+        {}
+      )
+
+      setError(
+        ''
+      )
+
+      setSuccess(
+        `Pasted ${nextDataRows.length} cases and ${width} variables.`
+      )
+
+      // ------------------------------------------------------
+      // NEW DATASET:
+      // save immediately and continue to preparation
+      // ------------------------------------------------------
+
+      if (
+        isNew
+      ) {
+        await uploadGrid(
+          nextColumns,
+          nextRows,
+          {
+            redirect:
+              true,
+          }
+        )
+
+        return
+      }
+
+      // ------------------------------------------------------
+      // EXISTING DATASET:
+      // replace data, save and continue to preparation
+      // ------------------------------------------------------
+
+      const saved =
+        await saveGridToExisting(
+          datasetId,
+          nextColumns,
+          nextRows
+        )
+
+      if (
+        saved
+      ) {
+        goToPrepare(
+          datasetId
+        )
+      }
+    }
+
+
+  // ========================================================
+  // PASTE INTO CELLS
+  // ========================================================
+
+  const applyCellPaste =
+    (
+      matrix,
+      startRow,
+      startColumn
+    ) => {
+      if (
+        !matrix.length
+      ) {
+        return
+      }
+
+      const widths =
+        matrix.map(
+          (
+            row
+          ) =>
+            Array.isArray(
+              row
+            )
+              ? row.length
+              : 0
+        )
+
+      const width =
+        Math.max(
+          ...widths,
+          0
+        )
+
+      if (
+        !width
+      ) {
+        return
+      }
+
+      const requiredColumns =
+        Math.max(
+          columns.length,
+
+          startColumn +
+            width
+        )
+
+      const requiredRows =
+        Math.max(
+          rows.length,
+
+          startRow +
+            matrix.length
+        )
+
+      const nextColumns =
+        Array.from(
+          {
+            length:
+              requiredColumns,
+          },
+          (
+            _,
+            index
+          ) =>
+            columns[
+              index
+            ] ??
+            ''
+        )
+
+      const nextRows =
+        Array.from(
+          {
+            length:
+              requiredRows,
+          },
+          (
+            _,
+            rowIndex
+          ) =>
+            Array.from(
+              {
+                length:
+                  requiredColumns,
+              },
+              (
+                __,
+                columnIndex
+              ) =>
+                rows?.[
+                  rowIndex
+                ]?.[
+                  columnIndex
+                ] ??
+                ''
+            )
+        )
+
+      matrix.forEach(
+        (
+          sourceRow,
+          rowOffset
+        ) => {
+          sourceRow.forEach(
+            (
+              value,
+              columnOffset
+            ) => {
+              nextRows[
+                startRow +
+                rowOffset
+              ][
+                startColumn +
+                columnOffset
+              ] =
+                String(
+                  value ?? ''
+                )
+            }
+          )
+        }
+      )
+
+      setColumns(
+        nextColumns
+      )
+
+      setRows(
+        nextRows
+      )
+    }
+
+
+  // ========================================================
+  // PASTE EVENT
+  // ========================================================
+
+  const handlePaste =
+    (
+      event
+    ) => {
+      const text =
+        event
+          .clipboardData
+          .getData(
+            'text'
+          )
+
+      const matrix =
+        parseClipboardData(
+          text
+        )
+
+      if (
+        !matrix.length
+      ) {
+        return
+      }
+
+      event.preventDefault()
+
+      if (
+        activeCell.area ===
+        'header'
+      ) {
+        applyFullDatasetPaste(
+          matrix
+        )
+
+        return
+      }
+
+      applyCellPaste(
+        matrix,
+        activeCell.rowIndex,
+        activeCell.columnIndex
+      )
+    }
+
+
+  // ========================================================
+  // UPLOAD CSV / EXCEL
+  // ========================================================
+
+  const uploadFile =
+    async (
+      event
+    ) => {
+      const file =
+        event
+          .target
+          .files?.[
+            0
+          ]
+
+      if (
+        !file
+      ) {
+        return
+      }
+
+      setUploading(
+        true
+      )
+
+      setError(
+        ''
+      )
+
+      setSuccess(
+        ''
+      )
+
+      try {
+        const formData =
+          new FormData()
+
+        formData.append(
+          'file',
+          file
+        )
+
+        const response =
+          await api.post(
+            '/datasets/upload',
+            formData
+          )
+
+        const newId =
+          response
+            .data
+            ?.id
+
+        if (
+          !newId
+        ) {
+          throw new Error(
+            'Dataset ID was not returned after upload.'
+          )
+        }
+
+        await loadSavedDatasets()
+
+        goToPrepare(
+          newId
+        )
+
+      } catch (
+        err
+      ) {
+        setError(
+          getErrorMessage(
+            err
+          )
+        )
+
+      } finally {
+        setUploading(
+          false
+        )
+
+        event.target.value =
+          ''
+      }
+    }
+
+
+  // ========================================================
+  // EXPORT CURRENT DATA
+  // ========================================================
+
+  const exportCurrentData =
+    () => {
+      try {
+        const normalized =
+          normalizeGrid(
+            columns,
+            rows
+          )
+
+        const csv = [
+          normalized
+            .headers
+            .map(
+              escapeCSV
+            )
+            .join(','),
+
+          ...normalized
+            .dataRows
+            .map(
+              (
+                row
+              ) =>
+                row
+                  .map(
+                    escapeCSV
+                  )
+                  .join(',')
+            ),
+        ].join(
+          '\n'
+        )
+
+        const blob =
+          new Blob(
+            [
+              csv,
+            ],
+            {
+              type:
+                'text/csv;charset=utf-8;',
+            }
+          )
+
+        const url =
+          URL.createObjectURL(
+            blob
+          )
+
+        const link =
+          document.createElement(
+            'a'
+          )
+
+        link.href =
+          url
+
+        link.download =
+          `${
+            datasetName.trim() ||
+            'dataset'
+          }.csv`
+
+        document
+          .body
+          .appendChild(
+            link
+          )
+
+        link.click()
+
+        document
+          .body
+          .removeChild(
+            link
+          )
+
+        URL.revokeObjectURL(
+          url
+        )
+
+        setSuccess(
+          'Dataset exported successfully.'
+        )
+
+        setTransferOpen(
+          false
+        )
+
+      } catch (
+        err
+      ) {
+        setError(
+          getErrorMessage(
+            err
+          )
+        )
+      }
+    }
+
+
+  // ========================================================
+  // PREPARE DATA
+  // ========================================================
+
+  const handlePrepare =
+    async () => {
+      setError(
+        ''
+      )
+
+      setSuccess(
+        ''
+      )
+
+      if (
+        isNew
+      ) {
+        await createDataset({
+          redirect:
+            true,
+        })
+
+        return
+      }
+
+      const saved =
+        await saveExistingDataset()
+
+      if (
+        saved
+      ) {
+        goToPrepare(
+          datasetId
+        )
+      }
+    }
+
+
+  // ========================================================
+  // INFER MEASUREMENT LEVELS
+  // ========================================================
+
+  const inferredLevels =
+    useMemo(
+      () => {
+        const result = {}
+
+        columns.forEach(
+          (
+            column,
+            columnIndex
+          ) => {
+            const name =
+              String(
+                column ||
+                ''
+              ).trim()
+
+            if (
+              !name
+            ) {
+              return
+            }
+
+            result[
+              name
+            ] =
+              detectMeasurementLevel(
+                rows.map(
+                  (
+                    row
+                  ) =>
+                    row[
+                      columnIndex
+                    ]
+                )
+              )
+          }
+        )
+
+        return result
+      },
+      [
+        columns,
+        rows,
+      ]
+    )
+
+
+  // ========================================================
+  // DATASET COUNTS
+  // ========================================================
+
+  const caseCount =
+    useMemo(
+      () =>
+        rows.filter(
+          (
+            row
+          ) =>
+            row.some(
+              (
+                value
+              ) =>
+                String(
+                  value ?? ''
+                ).trim() !== ''
+            )
+        ).length,
+      [
+        rows,
+      ]
+    )
+
+
+  const variableCount =
+    useMemo(
+      () =>
+        columns.filter(
+          (
+            column,
+            columnIndex
+          ) => {
+            const hasName =
+              String(
+                column ||
+                ''
+              ).trim() !== ''
+
+            const hasData =
+              rows.some(
+                (
+                  row
+                ) =>
+                  String(
+                    row?.[
+                      columnIndex
+                    ] ??
+                    ''
+                  ).trim() !== ''
+              )
+
+            return (
+              hasName ||
+              hasData
+            )
+          }
+        ).length,
+      [
+        columns,
+        rows,
+      ]
+    )
+
+
+  // ========================================================
+  // LOADING
+  // ========================================================
+
+  if (
+    loading
+  ) {
+    return (
+      <AppShell>
+
+        <div className="ssas-sheet-loading">
+
+          <span>
+            Opening dataset...
+          </span>
+
+        </div>
+
+      </AppShell>
+    )
+  }
 
 
   // ========================================================
@@ -1921,1217 +2635,721 @@ export default function DataWorkspacePage() {
   return (
     <AppShell>
 
-      <div className="ssas-workspace">
+      <div
+        className="ssas-sheet-page"
+        onPaste={
+          handlePaste
+        }
+      >
 
         {/* ==================================================
-            HEADER
-        ================================================== */}
+            TOOLBAR
+            ================================================== */}
 
-        <div className="ssas-workspace-header">
+        <div className="ssas-sheet-toolbar">
 
-          <div>
+          <div className="ssas-sheet-toolbar-left">
 
-            <span className="workspace-eyebrow">
-              SSAS DATA WORKSPACE
-            </span>
+            {/* ENTER NEW DATA */}
+
+            <button
+              type="button"
+              className="ssas-sheet-tab active"
+              onClick={
+                enterNewData
+              }
+            >
+              enter new data
+            </button>
 
 
-            <h1>
-              {isNewDataset
-                ? 'Enter New Data'
-                : dataset
-                    ?.original_filename ||
-                  'Dataset Workspace'}
-            </h1>
+            {/* EXPORT / IMPORT */}
+
+            <div className="ssas-sheet-menu-wrap">
+
+              <button
+                type="button"
+                className="ssas-sheet-tab"
+                onClick={() => {
+                  setTransferOpen(
+                    (
+                      current
+                    ) =>
+                      !current
+                  )
+
+                  setSettingsOpen(
+                    false
+                  )
+
+                  if (
+                    !transferOpen
+                  ) {
+                    loadSavedDatasets()
+                  }
+                }}
+              >
+                export / import
+              </button>
 
 
-            <p>
-              Enter, import, classify,
-              analyse and visualize data
-              in one workspace.
-            </p>
+              {transferOpen && (
+
+                <div className="ssas-sheet-popover ssas-transfer-popover">
+
+                  {/* UPLOAD */}
+
+                  <button
+                    type="button"
+                    disabled={
+                      uploading
+                    }
+                    onClick={() =>
+                      fileInputRef
+                        .current
+                        ?.click()
+                    }
+                  >
+                    <Upload
+                      size={15}
+                    />
+
+                    {
+                      uploading
+                        ? 'Uploading...'
+                        : 'Upload CSV / Excel'
+                    }
+
+                  </button>
+
+
+                  {/* EXPORT */}
+
+                  <button
+                    type="button"
+                    onClick={
+                      exportCurrentData
+                    }
+                  >
+                    <Download
+                      size={15}
+                    />
+
+                    Export current data
+                  </button>
+
+
+                  <div className="ssas-sheet-popover-divider" />
+
+
+                  <div className="ssas-saved-datasets-title">
+
+                    Saved datasets
+
+                  </div>
+
+
+                  <div className="ssas-saved-datasets-list">
+
+                    {loadingSavedDatasets && (
+
+                      <div className="ssas-saved-dataset-empty">
+                        Loading datasets...
+                      </div>
+
+                    )}
+
+
+                    {!loadingSavedDatasets &&
+                    !savedDatasets.length && (
+
+                      <div className="ssas-saved-dataset-empty">
+                        No saved datasets.
+                      </div>
+
+                    )}
+
+
+                    {!loadingSavedDatasets &&
+                    savedDatasets.map(
+                      (
+                        savedDataset
+                      ) => (
+
+                        <button
+                          type="button"
+                          key={
+                            savedDataset.id
+                          }
+                          className="ssas-saved-dataset-button"
+                          onClick={() =>
+                            openSavedDataset(
+                              savedDataset.id
+                            )
+                          }
+                        >
+
+                          <FileSpreadsheet
+                            size={14}
+                          />
+
+
+                          <span>
+
+                            {
+                              savedDataset
+                                .original_filename ||
+                              savedDataset
+                                .filename ||
+                              'Dataset'
+                            }
+
+                          </span>
+
+
+                          <small>
+                            Open
+                          </small>
+
+                        </button>
+
+                      )
+                    )}
+
+                  </div>
+
+                </div>
+
+              )}
+
+            </div>
+
+
+            {/* PREPARE DATA */}
+
+            <button
+              type="button"
+              className="ssas-sheet-tab"
+              disabled={
+                saving
+              }
+              onClick={
+                handlePrepare
+              }
+            >
+              {
+                saving
+                  ? 'saving...'
+                  : 'prepare data'
+              }
+            </button>
+
+
+            {/* SETTINGS */}
+
+            <div className="ssas-sheet-menu-wrap">
+
+              <button
+                type="button"
+                className="ssas-sheet-tab"
+                onClick={() => {
+                  setSettingsOpen(
+                    (
+                      current
+                    ) =>
+                      !current
+                  )
+
+                  setTransferOpen(
+                    false
+                  )
+                }}
+              >
+                settings
+              </button>
+
+
+              {settingsOpen && (
+
+                <div className="ssas-sheet-popover settings">
+
+                  <label>
+
+                    Dataset name
+
+                    <input
+                      type="text"
+                      value={
+                        datasetName
+                      }
+                      disabled={
+                        !isNew
+                      }
+                      onChange={
+                        (
+                          event
+                        ) =>
+                          setDatasetName(
+                            event
+                              .target
+                              .value
+                          )
+                      }
+                    />
+
+                  </label>
+
+
+                  <button
+                    type="button"
+                    onClick={
+                      addRow
+                    }
+                  >
+                    <Plus
+                      size={15}
+                    />
+
+                    Add case
+                  </button>
+
+
+                  <button
+                    type="button"
+                    onClick={
+                      addColumn
+                    }
+                  >
+                    <Plus
+                      size={15}
+                    />
+
+                    Add variable
+                  </button>
+
+                </div>
+
+              )}
+
+            </div>
 
           </div>
 
 
-          <button
-            className="workspace-secondary-button"
-            onClick={() =>
-              navigate(
-                '/datasets'
-              )
-            }
-          >
-            <ArrowLeft size={16} />
+          {/* SAVE STATUS */}
 
-            Back to Datasets
-          </button>
+          <div className="ssas-sheet-toolbar-right">
+
+            <Cloud
+              size={15}
+            />
+
+
+            <span>
+
+              {
+                saveState ===
+                'saving'
+                  ? 'saving changes...'
+
+                  : saveState ===
+                    'unsaved'
+                    ? 'changes pending...'
+
+                    : saveState ===
+                      'failed'
+                      ? 'save failed'
+
+                      : saveState ===
+                        'saved'
+                        ? 'autosaved to SSAS'
+
+                        : 'ready for data'
+              }
+
+            </span>
+
+
+            {saveState ===
+              'saved' && (
+
+              <Check
+                size={14}
+              />
+
+            )}
+
+          </div>
 
         </div>
 
 
+        {/* FILE UPLOAD */}
+
+        <input
+          ref={
+            fileInputRef
+          }
+          type="file"
+          hidden
+          accept=".csv,.xlsx,.xls"
+          onChange={
+            uploadFile
+          }
+        />
+
+
         {/* ==================================================
-            ALERTS
-        ================================================== */}
+            MESSAGES
+            ================================================== */}
 
         {error && (
-          <div className="workspace-alert error">
+
+          <div className="ssas-sheet-message error">
+
             {error}
+
           </div>
+
         )}
 
 
         {success && (
-          <div className="workspace-alert success">
+
+          <div className="ssas-sheet-message success">
+
             {success}
+
           </div>
+
         )}
 
 
         {/* ==================================================
-            TOP MENU
-        ================================================== */}
+            SPREADSHEET
+            ================================================== */}
 
-        <div className="workspace-menu">
+        <div className="ssas-spreadsheet-frame">
 
-          <button
-            className={
-              isNewDataset
-                ? 'workspace-menu-item active'
-                : 'workspace-menu-item'
-            }
-            onClick={() =>
-              navigate(
-                '/datasets/new'
-              )
-            }
-          >
-            <FilePlus2 size={16} />
+          <div className="ssas-spreadsheet-scroll">
 
-            Enter New Data
-          </button>
+            <table className="ssas-spreadsheet">
+
+              <thead>
+
+                {/* ==========================================
+                    MEASUREMENT LEVEL
+                    ========================================== */}
+
+                <tr className="measurement-row">
+
+                  <th className="case-measurement-cell" />
 
 
-          <button
-            type="button"
-            className="workspace-menu-item"
-            onClick={() =>
-              setTransferModalOpen(
-                true
-              )
-            }
-          >
-            <Upload size={16} />
+                  {columns.map(
+                    (
+                      column,
+                      columnIndex
+                    ) => {
+                      const name =
+                        String(
+                          column ||
+                          ''
+                        ).trim()
 
-            Export / Import
-          </button>
+                      const level =
+                        name
+                          ? (
+                              measurementLevels[
+                                name
+                              ] ||
+                              inferredLevels[
+                                name
+                              ] ||
+                              'nominal'
+                            )
+                          : ''
+
+                      return (
+                        <th
+                          key={
+                            `measurement-${columnIndex}`
+                          }
+                          className="measurement-cell"
+                        >
+
+                          {name && (
+
+                            <label className="measurement-selector">
+
+                              <select
+                                value={
+                                  level
+                                }
+                                onChange={
+                                  (
+                                    event
+                                  ) =>
+                                    updateMeasurementLevel(
+                                      name,
+                                      event
+                                        .target
+                                        .value
+                                    )
+                                }
+                              >
+
+                                <option value="nominal">
+                                  nominal
+                                </option>
+
+                                <option value="metric">
+                                  metric
+                                </option>
+
+                                <option value="ordinal">
+                                  ordinal
+                                </option>
+
+                              </select>
 
 
-          {!isNewDataset && (
-            <button
-              className="workspace-menu-item"
-              onClick={() =>
-                navigate(
-                  `/datasets/${datasetId}/prepare`
-                )
-              }
-            >
-              <Sparkles size={16} />
+                              <span className="measurement-content">
 
-              Prepare Data
-            </button>
-          )}
+                                <span>
+                                  {level}
+                                </span>
+
+
+                                <MeasurementIcon
+                                  level={
+                                    level
+                                  }
+                                />
+
+                              </span>
+
+                            </label>
+
+                          )}
+
+                        </th>
+                      )
+                    }
+                  )}
+
+                </tr>
+
+
+                {/* ==========================================
+                    VARIABLE NAMES
+                    ========================================== */}
+
+                <tr className="variable-row">
+
+                  <th className="case-header-cell">
+                    Case
+                  </th>
+
+
+                  {columns.map(
+                    (
+                      column,
+                      columnIndex
+                    ) => (
+
+                      <th
+                        key={
+                          `header-${columnIndex}`
+                        }
+                        className="variable-header-cell"
+                      >
+
+                        <input
+                          type="text"
+                          value={
+                            column
+                          }
+                          spellCheck="false"
+                          onFocus={() =>
+                            setActiveCell({
+                              area:
+                                'header',
+
+                              rowIndex:
+                                0,
+
+                              columnIndex,
+                            })
+                          }
+                          onChange={
+                            (
+                              event
+                            ) =>
+                              updateColumn(
+                                columnIndex,
+                                event
+                                  .target
+                                  .value
+                              )
+                          }
+                        />
+
+                      </th>
+
+                    )
+                  )}
+
+                </tr>
+
+              </thead>
+
+
+              <tbody>
+
+                {rows.map(
+                  (
+                    row,
+                    rowIndex
+                  ) => (
+
+                    <tr
+                      key={
+                        `row-${rowIndex}`
+                      }
+                    >
+
+                      {/* CASE NUMBER */}
+
+                      <td className="case-number-cell">
+
+                        <span>
+
+                          {rowIndex + 1}
+
+                        </span>
+
+
+                        <button
+                          type="button"
+                          className="delete-case-button"
+                          title="Delete case"
+                          onClick={() =>
+                            deleteRow(
+                              rowIndex
+                            )
+                          }
+                        >
+
+                          <Trash2
+                            size={11}
+                          />
+
+                        </button>
+
+                      </td>
+
+
+                      {/* DATA CELLS */}
+
+                      {columns.map(
+                        (
+                          _,
+                          columnIndex
+                        ) => (
+
+                          <td
+                            key={
+                              `cell-${rowIndex}-${columnIndex}`
+                            }
+                            className="data-cell"
+                          >
+
+                            <input
+                              type="text"
+                              value={
+                                row?.[
+                                  columnIndex
+                                ] ??
+                                ''
+                              }
+                              spellCheck="false"
+                              onFocus={() =>
+                                setActiveCell({
+                                  area:
+                                    'data',
+
+                                  rowIndex,
+
+                                  columnIndex,
+                                })
+                              }
+                              onChange={
+                                (
+                                  event
+                                ) =>
+                                  updateCell(
+                                    rowIndex,
+                                    columnIndex,
+                                    event
+                                      .target
+                                      .value
+                                  )
+                              }
+                            />
+
+                          </td>
+
+                        )
+                      )}
+
+                    </tr>
+
+                  )
+                )}
+
+              </tbody>
+
+            </table>
+
+          </div>
 
         </div>
 
 
         {/* ==================================================
-            NEW DATA
-        ================================================== */}
+            FOOTER
+            ================================================== */}
 
-        {isNewDataset && (
-          <div className="workspace-panel">
+        <div className="ssas-sheet-footer">
 
-            <div className="panel-heading">
+          <span>
 
-              <div>
-
-                <h2>
-                  Enter New Dataset
-                </h2>
-
-                <p>
-                  Type directly into the spreadsheet,
-                  paste cells, or import an Excel/CSV
-                  file into the form.
-                </p>
-
-              </div>
-
-            </div>
-
-
-            <label className="dataset-name-field">
-
-              Dataset Name
-
-              <input
-                value={newDatasetName}
-                onChange={(event) =>
-                  setNewDatasetName(
-                    event.target.value
+            {
+              dataset
+                ? (
+                    dataset
+                      .original_filename ||
+                    dataset
+                      .filename ||
+                    'Dataset'
                   )
-                }
-              />
+                : datasetName
+            }
 
-            </label>
+          </span>
 
 
-            <div className="spreadsheet-paste-message">
+          <span>
 
-              <strong>
-                Paste directly into the table
-              </strong>
+            {caseCount}
+            {' cases · '}
+            {variableCount}
+            {' variables'}
 
-              <span>
-                Copy a table from Excel,
-                click the first empty heading
-                or first data cell and press{' '}
-                <b>Ctrl + V</b>.
-                You can also use{' '}
-                <b>Export / Import</b>
-                above.
-              </span>
+          </span>
 
-            </div>
-
-
-            <div className="spreadsheet-container">
-
-              <table className="ssas-spreadsheet">
-
-                <thead>
-
-                  {/* MEASUREMENT LEVEL */}
-
-                  <tr className="level-row">
-
-                    <th>
-                      Level
-                    </th>
-
-
-                    {manualColumns.map(
-                      (
-                        column,
-                        columnIndex
-                      ) => {
-                        const automatic =
-                          detectManualLevel(
-                            manualRows.map(
-                              (row) =>
-                                row[
-                                  columnIndex
-                                ]
-                            )
-                          )
-
-
-                        const selectedLevel =
-                          manualLevels[
-                            columnIndex
-                          ] ||
-                          automatic
-
-
-                        return (
-                          <th
-                            key={
-                              columnIndex
-                            }
-                          >
-
-                            <select
-                              value={
-                                selectedLevel
-                              }
-                              title={
-                                `Automatically detected as ${automatic}`
-                              }
-                              onChange={(event) =>
-                                updateManualLevel(
-                                  columnIndex,
-                                  event.target.value
-                                )
-                              }
-                            >
-
-                              <option value="metric">
-                                Metric
-                              </option>
-
-                              <option value="ordinal">
-                                Ordinal
-                              </option>
-
-                              <option value="nominal">
-                                Nominal
-                              </option>
-
-                            </select>
-
-                          </th>
-                        )
-                      }
-                    )}
-
-                  </tr>
-
-
-                  {/* VARIABLE NAMES */}
-
-                  <tr>
-
-                    <th>
-                      Case
-                    </th>
-
-
-                    {manualColumns.map(
-                      (
-                        column,
-                        columnIndex
-                      ) => (
-                        <th
-                          key={
-                            columnIndex
-                          }
-                        >
-
-                          <input
-                            value={column}
-
-                            placeholder={
-                              `Column ${
-                                columnIndex + 1
-                              }`
-                            }
-
-                            title={
-                              'Enter a variable name or paste an Excel/CSV table here.'
-                            }
-
-                            onChange={(event) =>
-                              updateManualColumn(
-                                columnIndex,
-                                event.target.value
-                              )
-                            }
-
-                            onPaste={(event) =>
-                              pasteDatasetFromHeader(
-                                event,
-                                columnIndex
-                              )
-                            }
-                          />
-
-                        </th>
-                      )
-                    )}
-
-                  </tr>
-
-                </thead>
-
-
-                <tbody>
-
-                  {manualRows.map(
-                    (
-                      row,
-                      rowIndex
-                    ) => (
-                      <tr
-                        key={rowIndex}
-                        className="manual-data-row"
-                      >
-
-                        {/* CASE / DELETE */}
-
-                        <td className="case-column">
-
-                          <div className="case-control">
-
-                            <span className="case-number">
-                              {rowIndex + 1}
-                            </span>
-
-
-                            <button
-                              type="button"
-                              className="case-delete-button"
-                              title={
-                                `Delete Case ${
-                                  rowIndex + 1
-                                }`
-                              }
-                              onClick={() =>
-                                deleteManualRow(
-                                  rowIndex
-                                )
-                              }
-                            >
-                              <Trash2 size={15} />
-                            </button>
-
-                          </div>
-
-                        </td>
-
-
-                        {/* DATA CELLS */}
-
-                        {manualColumns.map(
-                          (
-                            _,
-                            columnIndex
-                          ) => (
-                            <td
-                              key={
-                                columnIndex
-                              }
-                            >
-
-                              <input
-                                value={
-                                  row[
-                                    columnIndex
-                                  ] ?? ''
-                                }
-
-                                onChange={(event) =>
-                                  updateManualCell(
-                                    rowIndex,
-                                    columnIndex,
-                                    event.target.value
-                                  )
-                                }
-
-                                onPaste={(event) =>
-                                  pasteIntoDataCells(
-                                    event,
-                                    rowIndex,
-                                    columnIndex
-                                  )
-                                }
-                              />
-
-                            </td>
-                          )
-                        )}
-
-                      </tr>
-                    )
-                  )}
-
-                </tbody>
-
-              </table>
-
-            </div>
-
-
-            <div className="spreadsheet-actions">
-
-              <button
-                className="workspace-secondary-button"
-                onClick={
-                  addManualRow
-                }
-              >
-                <Plus size={15} />
-
-                Add Row
-              </button>
-
-
-              <button
-                className="workspace-secondary-button"
-                onClick={
-                  addManualColumn
-                }
-              >
-                <Plus size={15} />
-
-                Add Variable
-              </button>
-
-
-              <button
-                className="workspace-primary-button"
-                disabled={saving}
-                onClick={
-                  saveManualDataset
-                }
-              >
-                <Save size={15} />
-
-                {saving
-                  ? 'Saving...'
-                  : 'Save Dataset'}
-              </button>
-
-            </div>
-
-          </div>
-        )}
-
-
-        {/* ==================================================
-            EXISTING DATASET
-        ================================================== */}
-
-        {!isNewDataset && (
-          <>
-
-            <div className="workspace-panel">
-
-              <div className="panel-heading">
-
-                <div>
-
-                  <h2>
-                    Dataset
-                  </h2>
-
-                  <p>
-                    SSAS automatically detected
-                    measurement levels. Change any
-                    classification if required.
-                  </p>
-
-                </div>
-
-
-                <span className="dataset-summary">
-
-                  {dataset?.row_count || 0}
-                  {' '}rows
-
-                  {' • '}
-
-                  {dataset?.column_count || 0}
-                  {' '}variables
-
-                </span>
-
-              </div>
-
-
-              {loading ? (
-                <div className="workspace-loading">
-                  Loading dataset...
-                </div>
-
-              ) : (
-                <div className="spreadsheet-container">
-
-                  <table className="ssas-spreadsheet">
-
-                    <thead>
-
-                      <tr className="level-row">
-
-                        <th>
-                          Level
-                        </th>
-
-
-                        {columns.map(
-                          (column) => (
-                            <th
-                              key={column}
-                            >
-
-                              <select
-                                value={
-                                  measurementLevels[
-                                    column
-                                  ] ||
-                                  'nominal'
-                                }
-                                onChange={(event) =>
-                                  updateMeasurementLevel(
-                                    column,
-                                    event.target.value
-                                  )
-                                }
-                              >
-
-                                <option value="metric">
-                                  Metric
-                                </option>
-
-                                <option value="ordinal">
-                                  Ordinal
-                                </option>
-
-                                <option value="nominal">
-                                  Nominal
-                                </option>
-
-                              </select>
-
-                            </th>
-                          )
-                        )}
-
-                      </tr>
-
-
-                      <tr>
-
-                        <th>
-                          Case
-                        </th>
-
-
-                        {columns.map(
-                          (column) => (
-                            <th
-                              key={column}
-                            >
-                              {column}
-                            </th>
-                          )
-                        )}
-
-                      </tr>
-
-                    </thead>
-
-
-                    <tbody>
-
-                      {previewRows.map(
-                        (
-                          row,
-                          rowIndex
-                        ) => (
-                          <tr
-                            key={
-                              rowIndex
-                            }
-                          >
-
-                            <td className="case-column">
-                              {rowIndex + 1}
-                            </td>
-
-
-                            {columns.map(
-                              (column) => (
-                                <td
-                                  key={column}
-                                >
-                                  {String(
-                                    row[
-                                      column
-                                    ] ?? ''
-                                  )}
-                                </td>
-                              )
-                            )}
-
-                          </tr>
-                        )
-                      )}
-
-                    </tbody>
-
-                  </table>
-
-                </div>
-              )}
-
-            </div>
-
-
-            {/* ==================================================
-                ANALYSIS MENU
-            ================================================== */}
-
-            <div className="analysis-menu">
-
-              {analysisMethods.map(
-                (
-                  method,
-                  index
-                ) => (
-                  <button
-                    key={method}
-                    className={
-                      index === 0
-                        ? 'analysis-item active'
-                        : 'analysis-item future'
-                    }
-                    disabled={
-                      index !== 0
-                    }
-                  >
-                    {method}
-                  </button>
-                )
-              )}
-
-            </div>
-
-
-            {/* ==================================================
-                DESCRIPTIVE
-            ================================================== */}
-
-            <div className="workspace-panel">
-
-              <div className="descriptive-title">
-
-                <BarChart3 size={20} />
-
-                <div>
-
-                  <h2>
-                    Descriptive / Charts
-                  </h2>
-
-                  <p>
-                    Select variables and statistics
-                    to calculate.
-                  </p>
-
-                </div>
-
-              </div>
-
-
-              <div className="variable-groups">
-
-                {/* METRIC */}
-
-                <div className="variable-group">
-
-                  <h3>
-                    Metric Variables
-                  </h3>
-
-
-                  {metricVariables.length
-                    ? metricVariables.map(
-                        (variable) => (
-                          <label
-                            key={
-                              variable.name
-                            }
-                          >
-
-                            <input
-                              type="checkbox"
-                              checked={
-                                selectedVariables.includes(
-                                  variable.name
-                                )
-                              }
-                              onChange={() =>
-                                toggleVariable(
-                                  variable.name
-                                )
-                              }
-                            />
-
-                            {variable.name}
-
-                          </label>
-                        )
-                      )
-                    : (
-                      <p>
-                        No Metric variables.
-                      </p>
-                    )}
-
-                </div>
-
-
-                {/* ORDINAL */}
-
-                <div className="variable-group">
-
-                  <h3>
-                    Ordinal Variables
-                  </h3>
-
-
-                  {ordinalVariables.length
-                    ? ordinalVariables.map(
-                        (variable) => (
-                          <span
-                            key={
-                              variable.name
-                            }
-                            className="variable-pill"
-                          >
-                            {variable.name}
-                          </span>
-                        )
-                      )
-                    : (
-                      <p>
-                        No Ordinal variables.
-                      </p>
-                    )}
-
-                </div>
-
-
-                {/* NOMINAL */}
-
-                <div className="variable-group">
-
-                  <h3>
-                    Nominal Variables
-                  </h3>
-
-
-                  {nominalVariables.length
-                    ? nominalVariables.map(
-                        (variable) => (
-                          <span
-                            key={
-                              variable.name
-                            }
-                            className="variable-pill"
-                          >
-                            {variable.name}
-                          </span>
-                        )
-                      )
-                    : (
-                      <p>
-                        No Nominal variables.
-                      </p>
-                    )}
-
-                </div>
-
-              </div>
-
-
-              <div className="statistics-section">
-
-                <h3>
-                  Calculate
-                </h3>
-
-
-                <div className="statistics-options">
-
-                  {statisticOptions.map(
-                    ([
-                      key,
-                      label,
-                    ]) => (
-                      <label
-                        key={key}
-                      >
-
-                        <input
-                          type="checkbox"
-                          checked={
-                            selectedStatistics[
-                              key
-                            ] ||
-                            false
-                          }
-                          onChange={(event) =>
-                            setSelectedStatistics(
-                              (previous) => ({
-                                ...previous,
-
-                                [key]:
-                                  event.target.checked,
-                              })
-                            )
-                          }
-                        />
-
-                        {label}
-
-                      </label>
-                    )
-                  )}
-
-                </div>
-
-
-                <button
-                  className="workspace-primary-button calculate-button"
-                  disabled={
-                    calculating
-                  }
-                  onClick={
-                    calculateDescriptive
-                  }
-                >
-                  <Sparkles size={16} />
-
-                  {calculating
-                    ? 'Calculating...'
-                    : 'Calculate'}
-                </button>
-
-              </div>
-
-            </div>
-
-
-            {/* ==================================================
-                RESULTS
-            ================================================== */}
-
-            {calculationComplete && (
-              <div className="workspace-panel">
-
-                <h2>
-                  Descriptive Statistics
-                </h2>
-
-
-                {Object.entries(
-                  descriptiveResults
-                ).map(
-                  ([
-                    column,
-                    result,
-                  ]) => {
-                    const values =
-                      fullRows
-                        .map(
-                          (row) =>
-                            Number(
-                              row[column]
-                            )
-                        )
-                        .filter(
-                          Number.isFinite
-                        )
-
-
-                    return (
-                      <div
-                        key={column}
-                        className="descriptive-result-block"
-                      >
-
-                        <h3>
-                          {column}
-                        </h3>
-
-
-                        <div className="result-layout">
-
-                          <table className="descriptive-result-table">
-
-                            <tbody>
-
-                              {statisticOptions
-                                .filter(
-                                  ([key]) =>
-                                    selectedStatistics[
-                                      key
-                                    ]
-                                )
-                                .map(
-                                  ([
-                                    key,
-                                    label,
-                                  ]) => (
-                                    <tr
-                                      key={key}
-                                    >
-
-                                      <td>
-                                        {label}
-                                      </td>
-
-                                      <td>
-                                        {resultValue(
-                                          result,
-                                          key
-                                        )}
-                                      </td>
-
-                                    </tr>
-                                  )
-                                )}
-
-                            </tbody>
-
-                          </table>
-
-
-                          <div className="descriptive-chart">
-
-                            <div className="chart-controls">
-
-                              <label>
-
-                                <input
-                                  type="checkbox"
-                                  checked={
-                                    showNormalCurve
-                                  }
-                                  onChange={(event) =>
-                                    setShowNormalCurve(
-                                      event.target.checked
-                                    )
-                                  }
-                                />
-
-                                Normal Distribution
-
-                              </label>
-
-                            </div>
-
-
-                            <Plot
-                              data={(() => {
-                                const traces = [
-                                  {
-                                    type:
-                                      'histogram',
-
-                                    x:
-                                      values,
-
-                                    histnorm:
-                                      'probability density',
-
-                                    name:
-                                      column,
-                                  },
-                                ]
-
-
-                                if (
-                                  showNormalCurve &&
-                                  values.length &&
-                                  result
-                                    .standard_deviation >
-                                    0
-                                ) {
-                                  const minimum =
-                                    Math.min(
-                                      ...values
-                                    )
-
-                                  const maximum =
-                                    Math.max(
-                                      ...values
-                                    )
-
-                                  const mean =
-                                    result.mean
-
-                                  const sd =
-                                    result
-                                      .standard_deviation
-
-                                  const pointCount =
-                                    100
-
-                                  const range =
-                                    maximum -
-                                    minimum
-
-                                  const step =
-                                    range === 0
-                                      ? 1
-                                      : range /
-                                        (
-                                          pointCount -
-                                          1
-                                        )
-
-
-                                  const x =
-                                    Array.from(
-                                      {
-                                        length:
-                                          pointCount,
-                                      },
-                                      (
-                                        _,
-                                        index
-                                      ) =>
-                                        minimum +
-                                        index *
-                                          step
-                                    )
-
-
-                                  const y =
-                                    x.map(
-                                      (value) =>
-                                        (
-                                          1 /
-                                          (
-                                            sd *
-                                            Math.sqrt(
-                                              2 *
-                                              Math.PI
-                                            )
-                                          )
-                                        ) *
-                                        Math.exp(
-                                          -0.5 *
-                                          Math.pow(
-                                            (
-                                              value -
-                                              mean
-                                            ) /
-                                              sd,
-                                            2
-                                          )
-                                        )
-                                    )
-
-
-                                  traces.push({
-                                    type:
-                                      'scatter',
-
-                                    mode:
-                                      'lines',
-
-                                    x,
-                                    y,
-
-                                    name:
-                                      'Normal distribution',
-                                  })
-                                }
-
-
-                                return traces
-
-                              })()}
-
-                              layout={{
-                                autosize: true,
-
-                                height: 420,
-
-                                title: {
-                                  text:
-                                    `Histogram — ${column}`,
-                                },
-
-                                xaxis: {
-                                  title: {
-                                    text:
-                                      column,
-                                  },
-                                },
-
-                                yaxis: {
-                                  title: {
-                                    text:
-                                      'Probability Density',
-                                  },
-                                },
-
-                                margin: {
-                                  l: 60,
-                                  r: 20,
-                                  t: 60,
-                                  b: 60,
-                                },
-                              }}
-
-                              config={{
-                                responsive: true,
-
-                                displaylogo: false,
-
-                                toImageButtonOptions: {
-                                  format: 'png',
-
-                                  filename:
-                                    `${column}-histogram`,
-                                },
-                              }}
-
-                              useResizeHandler
-
-                              style={{
-                                width: '100%',
-                              }}
-                            />
-
-                          </div>
-
-                        </div>
-
-                      </div>
-                    )
-                  }
-                )}
-
-              </div>
-            )}
-
-          </>
-        )}
-
-
-        {/* ==================================================
-            EXPORT / IMPORT MODAL
-        ================================================== */}
-
-        <DataTransferModal
-          open={
-            transferModalOpen
-          }
-
-          onClose={() =>
-            setTransferModalOpen(
-              false
-            )
-          }
-
-          onImport={
-            handleTransferImport
-          }
-
-          exportColumns={
-            isNewDataset
-              ? manualColumns
-              : columns
-          }
-
-          exportRows={
-            transferExportRows
-          }
-
-          datasetName={
-            isNewDataset
-              ? newDatasetName
-              : dataset
-                  ?.original_filename ||
-                'SSAS-Dataset'
-          }
-        />
+        </div>
 
       </div>
 

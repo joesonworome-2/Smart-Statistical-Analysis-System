@@ -17,9 +17,7 @@ from app.config import settings
 
 
 _client = None
-
 _database = None
-
 _collection = None
 
 
@@ -57,10 +55,11 @@ def get_results_collection():
     global _database
     global _collection
 
-
-    if _collection is not None:
+    if (
+        _collection
+        is not None
+    ):
         return _collection
-
 
     uri = setting_value(
         "mongodb_url",
@@ -71,49 +70,49 @@ def get_results_collection():
             os.getenv(
                 "MONGODB_URL"
             )
-            or
-            os.getenv(
+            or os.getenv(
                 "MONGODB_URI"
             )
-            or
-            "mongodb://mongodb:27017"
+            or (
+                "mongodb://"
+                "mongodb:27017"
+            )
         ),
     )
 
-
-    database_name = setting_value(
-        "mongodb_database",
-        "mongo_database",
-        "database_name",
-        "mongo_db",
-        default=(
-            os.getenv(
-                "MONGODB_DATABASE"
-            )
-            or
-            os.getenv(
-                "MONGO_DATABASE"
-            )
-            or
-            "ssas"
-        ),
+    database_name = (
+        setting_value(
+            "mongodb_database",
+            "mongo_database",
+            "database_name",
+            "mongo_db",
+            default=(
+                os.getenv(
+                    "MONGODB_DATABASE"
+                )
+                or os.getenv(
+                    "MONGO_DATABASE"
+                )
+                or "ssas"
+            ),
+        )
     )
-
 
     _client = MongoClient(
         uri
     )
 
+    _database = (
+        _client[
+            database_name
+        ]
+    )
 
-    _database = _client[
-        database_name
-    ]
-
-
-    _collection = _database[
-        "statistical_results"
-    ]
-
+    _collection = (
+        _database[
+            "statistical_results"
+        ]
+    )
 
     _collection.create_index(
         [
@@ -131,7 +130,6 @@ def get_results_collection():
         ),
     )
 
-
     _collection.create_index(
         [
             (
@@ -148,7 +146,6 @@ def get_results_collection():
         ),
     )
 
-
     return _collection
 
 
@@ -157,85 +154,87 @@ def get_results_collection():
 # ==========================================================
 
 def serialize_result(
-    document
+    document,
 ):
     return {
-        "id":
-            str(
-                document["_id"]
-            ),
-
-        "user_id":
+        "id": str(
+            document[
+                "_id"
+            ]
+        ),
+        "user_id": (
             document[
                 "user_id"
-            ],
-
-        "dataset_id":
+            ]
+        ),
+        "dataset_id": (
             document[
                 "dataset_id"
-            ],
-
-        "dataset_name":
+            ]
+        ),
+        "dataset_name": (
             document.get(
                 "dataset_name"
-            ),
-
-        "method":
+            )
+        ),
+        "method": (
             document[
                 "method"
-            ],
-
-        "title":
+            ]
+        ),
+        "title": (
             document[
                 "title"
-            ],
-
-        "configuration":
+            ]
+        ),
+        "configuration": (
             document.get(
                 "configuration",
                 {},
-            ),
-
-        "tables":
+            )
+        ),
+        "tables": (
             document.get(
                 "tables",
                 [],
-            ),
-
-        "assumptions":
+            )
+        ),
+        "assumptions": (
             document.get(
                 "assumptions"
-            ),
-
-        "interpretation":
+            )
+        ),
+        "interpretation": (
             document.get(
                 "interpretation"
-            ),
-
-        "apa":
+            )
+        ),
+        "detailed_explanation": (
+            document.get(
+                "detailed_explanation"
+            )
+        ),
+        "apa": (
             document.get(
                 "apa"
-            ),
-
-        "metadata":
+            )
+        ),
+        "metadata": (
             document.get(
                 "metadata",
                 {},
-            ),
-
-        "created_at":
+            )
+        ),
+        "created_at": (
             document[
                 "created_at"
-            ],
-
-        "updated_at":
+            ]
+        ),
+        "updated_at": (
             document[
                 "updated_at"
-            ],
-"detailed_explanation":
-    document.get(
-        "detailed_explanation"
-    ),		
+            ]
+        ),
     }
 
 
@@ -251,11 +250,9 @@ def save_statistical_result(
         get_results_collection()
     )
 
-
     now = datetime.now(
         timezone.utc
     )
-
 
     document = {
         "user_id":
@@ -285,6 +282,11 @@ def save_statistical_result(
         "interpretation":
             payload.interpretation,
 
+        # Persist the exact structured explanation displayed
+        # by the Analysis -> Explain interface.
+        "detailed_explanation":
+            payload.detailed_explanation,
+
         "apa":
             payload.apa,
 
@@ -298,16 +300,17 @@ def save_statistical_result(
             now,
     }
 
-
-    result = collection.insert_one(
-        document
+    result = (
+        collection.insert_one(
+            document
+        )
     )
 
-
-    document["_id"] = (
+    document[
+        "_id"
+    ] = (
         result.inserted_id
     )
-
 
     return serialize_result(
         document
@@ -327,32 +330,29 @@ def list_statistical_results(
         get_results_collection()
     )
 
-
     query = {
         "user_id":
             user_id
     }
-
 
     if dataset_id:
         query[
             "dataset_id"
         ] = dataset_id
 
-
     if method:
         query[
             "method"
         ] = method
 
-
-    cursor = collection.find(
-        query
-    ).sort(
-        "created_at",
-        DESCENDING,
+    cursor = (
+        collection.find(
+            query
+        ).sort(
+            "created_at",
+            DESCENDING,
+        )
     )
-
 
     return [
         serialize_result(
@@ -381,22 +381,21 @@ def get_statistical_result(
     except Exception:
         return None
 
-
     document = (
         get_results_collection()
-        .find_one({
-            "_id":
-                object_id,
+        .find_one(
+            {
+                "_id":
+                    object_id,
 
-            "user_id":
-                user_id,
-        })
+                "user_id":
+                    user_id,
+            }
+        )
     )
-
 
     if not document:
         return None
-
 
     return serialize_result(
         document
@@ -421,18 +420,18 @@ def delete_statistical_result(
     except Exception:
         return False
 
-
     result = (
         get_results_collection()
-        .delete_one({
-            "_id":
-                object_id,
+        .delete_one(
+            {
+                "_id":
+                    object_id,
 
-            "user_id":
-                user_id,
-        })
+                "user_id":
+                    user_id,
+            }
+        )
     )
-
 
     return bool(
         result.deleted_count

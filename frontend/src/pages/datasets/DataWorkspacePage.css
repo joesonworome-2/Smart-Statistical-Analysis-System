@@ -1,373 +1,1223 @@
 /* ==========================================================
-   EXPORT / IMPORT MODAL
+   SSAS DATASET SPREADSHEET
    ========================================================== */
 
-.transfer-modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 10000;
+.ssas-sheet-page {
+  width: 100%;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  min-height:
+    calc(
+      100vh - 76px
+    );
 
-  padding: 20px;
+  padding:
+    28px
+    30px
+    24px;
 
-  background:
-    rgba(16, 24, 40, 0.56);
+  background: #ffffff;
 
-  backdrop-filter: blur(2px);
+  color: #111111;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 16px;
+
+  box-sizing: border-box;
 }
 
 
-.transfer-modal {
+.ssas-sheet-page *,
+.ssas-sheet-page *::before,
+.ssas-sheet-page *::after {
+  box-sizing: border-box;
+}
+
+
+/* ==========================================================
+   LOADING
+   ========================================================== */
+
+.ssas-sheet-loading {
+  min-height: 450px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  background: #ffffff;
+
+  color: #007f82;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 15px;
+}
+
+
+/* ==========================================================
+   TOP TOOLBAR
+   ========================================================== */
+
+.ssas-sheet-toolbar {
+  position: relative;
+
+  z-index: 50;
+
   width: 100%;
-  max-width: 520px;
 
-  max-height: 90vh;
+  min-height: 48px;
 
-  overflow-y: auto;
+  display: flex;
 
-  padding: 26px 28px;
+  align-items: center;
 
-  border: 1px solid #e4e7ec;
+  justify-content: space-between;
 
-  border-radius: 12px;
+  gap: 30px;
+
+  background: #ffffff;
+}
+
+
+.ssas-sheet-toolbar-left {
+  min-width: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 22px;
+}
+
+
+.ssas-sheet-toolbar-right {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  color: #007f82;
+
+  font-size: 15px;
+
+  font-weight: 400;
+
+  white-space: nowrap;
+}
+
+
+.ssas-sheet-toolbar-right svg {
+  color: #00898b;
+}
+
+
+/* ==========================================================
+   TOOLBAR LINKS
+   ========================================================== */
+
+.ssas-sheet-tab {
+  padding:
+    6px
+    0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #007d80;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 17px;
+
+  font-weight: 400;
+
+  line-height: 1;
+
+  text-transform: lowercase;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+}
+
+
+.ssas-sheet-tab:hover {
+  color: #005e61;
+}
+
+
+.ssas-sheet-tab.active {
+  color: #007d80;
+
+  font-weight: 700;
+}
+
+
+.ssas-sheet-tab:disabled {
+  opacity: 0.55;
+
+  cursor: wait;
+}
+
+
+/* ==========================================================
+   POPOVER WRAPPER
+   ========================================================== */
+
+.ssas-sheet-menu-wrap {
+  position: relative;
+}
+
+
+/* ==========================================================
+   POPOVER
+   ========================================================== */
+
+.ssas-sheet-popover {
+  position: absolute;
+
+  z-index: 500;
+
+  top:
+    calc(
+      100% + 10px
+    );
+
+  left: -10px;
+
+  min-width: 225px;
+
+  padding: 7px;
+
+  border:
+    1px solid
+    #c9ced0;
+
+  border-radius: 4px;
 
   background: #ffffff;
 
   box-shadow:
-    0 24px 60px
-    rgba(16, 24, 40, 0.25);
-
-  animation:
-    transferModalAppear
-    0.16s
-    ease-out;
+    0
+    9px
+    26px
+    rgba(
+      0,
+      0,
+      0,
+      0.13
+    );
 }
 
 
-.transfer-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  margin-bottom: 18px;
-
-  padding-bottom: 7px;
-
-  border-bottom:
-    1px solid #74c9c9;
-}
-
-
-.transfer-modal-header h2 {
-  margin: 0;
-
-  color: #101828;
-
-  font-size: 22px;
-}
-
-
-.transfer-close-button {
-  width: 31px;
-  height: 31px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 0;
-
-  border: 0;
-  border-radius: 6px;
-
-  background: transparent;
-
-  color: #344054;
-
-  cursor: pointer;
-}
-
-
-.transfer-close-button:hover {
-  background: #f2f4f7;
-}
-
-
-.transfer-error {
-  margin-bottom: 15px;
-
-  padding: 9px 11px;
-
-  border: 1px solid #fecdca;
-
-  border-radius: 7px;
-
-  color: #b42318;
-
-  background: #fef3f2;
-
-  font-size: 10px;
-}
-
-
-.transfer-section {
-  margin-bottom: 25px;
-}
-
-
-.transfer-section:last-child {
-  margin-bottom: 0;
-}
-
-
-.transfer-section h3 {
-  margin: 0 0 4px;
-
-  color: #101828;
-
-  font-size: 19px;
-}
-
-
-.transfer-section p {
-  margin: 10px 0 13px;
-
-  color: #475467;
-
-  font-size: 10px;
-
-  line-height: 1.55;
-}
-
-
-.transfer-divider {
+.ssas-sheet-popover > button {
   width: 100%;
-  height: 1px;
 
-  background: #7acaca;
-}
+  min-height: 38px;
 
-
-.transfer-export-buttons {
   display: flex;
-  flex-wrap: wrap;
 
-  gap: 7px;
-}
-
-
-.transfer-primary-button {
-  min-height: 35px;
-
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
 
-  gap: 6px;
+  gap: 9px;
 
-  padding: 0 12px;
+  padding:
+    7px
+    9px;
 
   border: 0;
 
-  border-radius: 7px;
-
-  color: #ffffff;
-
-  background: #087f7f;
-
-  font-size: 10px;
-  font-weight: 700;
-
-  cursor: pointer;
-}
-
-
-.transfer-primary-button:hover {
-  background: #066b6b;
-}
-
-
-.transfer-drop-zone {
-  min-height: 145px;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  gap: 8px;
-
-  margin-top: 15px;
-
-  padding: 20px;
-
-  border:
-    3px dashed
-    #c7c9cc;
+  border-radius: 2px;
 
   background: #ffffff;
 
-  color: #344054;
+  color: #087f82;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 13px;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+
+.ssas-sheet-popover > button:hover {
+  background: #eefafa;
+}
+
+
+.ssas-sheet-popover > button:disabled {
+  opacity: 0.6;
+
+  cursor: wait;
+}
+
+
+/* ==========================================================
+   EXPORT / IMPORT POPOVER
+   ========================================================== */
+
+.ssas-transfer-popover {
+  width: 320px;
+
+  max-width:
+    calc(
+      100vw - 40px
+    );
+}
+
+
+.ssas-sheet-popover-divider {
+  height: 1px;
+
+  margin:
+    7px
+    2px;
+
+  background: #e1e4e5;
+}
+
+
+/* ==========================================================
+   SAVED DATASETS
+   ========================================================== */
+
+.ssas-saved-datasets-title {
+  padding:
+    5px
+    8px
+    7px;
+
+  color: #555f63;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.4px;
+}
+
+
+.ssas-saved-datasets-list {
+  max-height: 245px;
+
+  overflow-y: auto;
+
+  padding-right: 2px;
+}
+
+
+.ssas-saved-dataset-button {
+  width: 100%;
+
+  min-height: 38px;
+
+  display: grid !important;
+
+  grid-template-columns:
+    auto
+    1fr
+    auto;
+
+  align-items: center;
+
+  gap: 8px;
+
+  padding:
+    7px
+    8px !important;
+
+  border: 0;
+
+  border-radius: 2px;
+
+  background: #ffffff;
+
+  color: #202020 !important;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  cursor: pointer;
+}
+
+
+.ssas-saved-dataset-button:hover {
+  background: #eff9f9 !important;
+}
+
+
+.ssas-saved-dataset-button svg {
+  color: #008588;
+}
+
+
+.ssas-saved-dataset-button span {
+  min-width: 0;
+
+  overflow: hidden;
+
+  color: #1f1f1f;
+
+  font-size: 12px;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+.ssas-saved-dataset-button small {
+  color: #008386;
+
+  font-size: 11px;
+}
+
+
+.ssas-saved-dataset-empty {
+  padding:
+    14px
+    9px;
+
+  color: #777777;
+
+  font-size: 12px;
 
   text-align: center;
-
-  transition:
-    border-color 0.15s ease,
-    background 0.15s ease;
 }
 
 
-.transfer-drop-zone svg {
-  color: #087f7f;
+/* ==========================================================
+   SETTINGS
+   ========================================================== */
+
+.ssas-sheet-popover.settings {
+  width: 245px;
 }
 
 
-.transfer-drop-zone strong {
+.ssas-sheet-popover.settings label {
+  display: block;
+
+  padding:
+    7px
+    8px
+    10px;
+
+  color: #333333;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 12px;
+
+  font-weight: 600;
+}
+
+
+.ssas-sheet-popover.settings label input {
+  width: 100%;
+
+  height: 34px;
+
+  margin-top: 6px;
+
+  padding:
+    0
+    7px;
+
+  border:
+    1px solid
+    #bfc4c6;
+
+  border-radius: 2px;
+
+  outline: none;
+
+  background: #ffffff;
+
+  color: #111111;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 13px;
+}
+
+
+.ssas-sheet-popover.settings label input:focus {
+  border-color: #008b8b;
+}
+
+
+/* ==========================================================
+   MESSAGES
+   ========================================================== */
+
+.ssas-sheet-message {
+  margin:
+    5px
+    0
+    8px;
+
+  padding:
+    7px
+    10px;
+
+  border:
+    1px solid;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
   font-size: 12px;
 }
 
 
-.transfer-drop-zone span {
-  color: #667085;
+.ssas-sheet-message.error {
+  border-color: #e1aaaa;
 
-  font-size: 10px;
+  background: #fff4f4;
+
+  color: #a12424;
 }
 
 
-.transfer-drop-zone small {
-  color: #087f7f;
+.ssas-sheet-message.success {
+  border-color: #9fc9bf;
 
-  font-size: 10px;
+  background: #f0faf7;
+
+  color: #087565;
 }
 
 
-.transfer-drop-zone.dragging {
-  border-color: #087f7f;
+/* ==========================================================
+   SPREADSHEET FRAME
+   ========================================================== */
 
-  background: #f0fdfc;
-}
+.ssas-spreadsheet-frame {
+  width: 100%;
 
+  height:
+    min(
+      67vh,
+      590px
+    );
 
-.transfer-or {
-  display: grid;
-
-  grid-template-columns:
-    1fr auto 1fr;
-
-  align-items: center;
-
-  gap: 10px;
-
-  margin: 18px 0;
-}
-
-
-.transfer-or span {
-  height: 1px;
-
-  background: #74c9c9;
-}
-
-
-.transfer-or b {
-  color: #667085;
-
-  font-size: 10px;
-
-  font-weight: 500;
-}
-
-
-.transfer-file-picker {
-  display: flex;
-
-  min-height: 40px;
+  min-height: 490px;
 
   overflow: hidden;
 
-  border: 1px solid #d0d5dd;
+  border:
+    1px solid
+    #bfc2c3;
 
-  border-radius: 6px;
+  border-radius: 4px;
+
+  background: #ffffff;
 }
 
 
-.transfer-file-label {
-  flex: 1;
+.ssas-spreadsheet-scroll {
+  width: 100%;
 
-  display: flex;
-  align-items: center;
+  height: 100%;
 
-  padding: 0 12px;
+  overflow: auto;
 
-  color: #667085;
+  scrollbar-color:
+    #848484
+    #f2f2f2;
+
+  scrollbar-width: auto;
+}
+
+
+/* ==========================================================
+   SCROLLBAR
+   ========================================================== */
+
+.ssas-spreadsheet-scroll::-webkit-scrollbar {
+  width: 13px;
+
+  height: 13px;
+}
+
+
+.ssas-spreadsheet-scroll::-webkit-scrollbar-track {
+  background: #f4f4f4;
+}
+
+
+.ssas-spreadsheet-scroll::-webkit-scrollbar-thumb {
+  border:
+    2px solid
+    #f4f4f4;
+
+  border-radius: 8px;
+
+  background: #858585;
+}
+
+
+.ssas-spreadsheet-scroll::-webkit-scrollbar-thumb:hover {
+  background: #666666;
+}
+
+
+/* ==========================================================
+   TABLE
+   ========================================================== */
+
+.ssas-spreadsheet {
+  width: max-content;
+
+  min-width: 100%;
+
+  table-layout: fixed;
+
+  border-collapse: separate;
+
+  border-spacing: 0;
 
   background: #ffffff;
 
-  font-size: 10px;
+  color: #111111;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 16px;
 }
 
 
-.transfer-browse-button {
-  min-width: 92px;
+/* ==========================================================
+   BASE CELLS
+   ========================================================== */
 
-  border: 0;
+.ssas-spreadsheet th,
+.ssas-spreadsheet td {
+  height: 31px;
 
-  color: #ffffff;
+  padding: 0;
 
-  background: #087f7f;
+  border-right:
+    1px solid
+    #c7c7c7;
 
-  font-size: 10px;
-  font-weight: 700;
+  border-bottom:
+    1px solid
+    #c7c7c7;
+
+  background: #ffffff;
+
+  color: #111111;
+
+  font-weight: 400;
+
+  vertical-align: middle;
+}
+
+
+.ssas-spreadsheet th:last-child,
+.ssas-spreadsheet td:last-child {
+  border-right: 0;
+}
+
+
+/* ==========================================================
+   STICKY HEADER
+   ========================================================== */
+
+.ssas-spreadsheet thead {
+  position: sticky;
+
+  top: 0;
+
+  z-index: 15;
+}
+
+
+/* ==========================================================
+   MEASUREMENT LEVEL ROW
+   ========================================================== */
+
+.measurement-row th {
+  position: sticky;
+
+  top: 0;
+
+  z-index: 18;
+
+  height: 36px;
+
+  background: #fafafa;
+}
+
+
+.case-measurement-cell {
+  left: 0;
+
+  z-index: 22 !important;
+
+  width: 64px;
+
+  min-width: 64px;
+
+  max-width: 64px;
+
+  background: #fafafa !important;
+}
+
+
+.measurement-cell {
+  width: 162px;
+
+  min-width: 162px;
+
+  max-width: 162px;
+
+  background: #fafafa !important;
+}
+
+
+/* ==========================================================
+   MEASUREMENT SELECTOR
+   ========================================================== */
+
+.measurement-selector {
+  position: relative;
+
+  width: 100%;
+
+  height: 100%;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: flex-end;
+
+  padding:
+    0
+    7px;
 
   cursor: pointer;
 }
 
 
-.transfer-browse-button:hover {
-  background: #066b6b;
+.measurement-selector select {
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+
+  height: 100%;
+
+  opacity: 0;
+
+  cursor: pointer;
 }
 
 
-.transfer-browse-button:disabled,
-.transfer-close-button:disabled {
-  opacity: 0.55;
+.measurement-content {
+  display: inline-flex;
 
-  cursor: not-allowed;
+  align-items: center;
+
+  gap: 5px;
+
+  color: #111111;
+
+  font-size: 15px;
+
+  font-weight: 400;
+
+  line-height: 1;
 }
 
 
-@keyframes transferModalAppear {
-  from {
-    opacity: 0;
-
-    transform:
-      translateY(7px)
-      scale(0.98);
-  }
-
-  to {
-    opacity: 1;
-
-    transform:
-      translateY(0)
-      scale(1);
-  }
+.measurement-content svg {
+  color: #00898c;
 }
 
 
-@media (max-width: 600px) {
-  .transfer-modal {
-    padding: 20px;
+/* ==========================================================
+   NOMINAL ICON
+   ========================================================== */
+
+.measurement-nominal-icon {
+  position: relative;
+
+  width: 14px;
+
+  height: 14px;
+
+  display: inline-block;
+
+  flex:
+    0
+    0
+    14px;
+}
+
+
+.measurement-nominal-icon i {
+  position: absolute;
+
+  width: 6px;
+
+  height: 6px;
+
+  display: block;
+
+  border-radius: 50%;
+}
+
+
+.measurement-nominal-icon i:nth-child(1) {
+  top: 1px;
+
+  left: 4px;
+
+  background: #c91919;
+}
+
+
+.measurement-nominal-icon i:nth-child(2) {
+  bottom: 1px;
+
+  left: 0;
+
+  background: #008d90;
+}
+
+
+.measurement-nominal-icon i:nth-child(3) {
+  right: 0;
+
+  bottom: 1px;
+
+  background: #344b58;
+}
+
+
+/* ==========================================================
+   VARIABLE HEADER ROW
+   ========================================================== */
+
+.variable-row th {
+  position: sticky;
+
+  top: 36px;
+
+  z-index: 17;
+
+  height: 31px;
+
+  background: #ffffff;
+}
+
+
+.case-header-cell {
+  left: 0;
+
+  z-index: 21 !important;
+
+  width: 64px;
+
+  min-width: 64px;
+
+  max-width: 64px;
+
+  padding-left: 14px !important;
+
+  background: #ffffff !important;
+
+  color: #5c6266 !important;
+
+  font-size: 14px;
+
+  font-style: italic;
+
+  font-weight: 400 !important;
+
+  text-align: left;
+}
+
+
+.variable-header-cell {
+  width: 162px;
+
+  min-width: 162px;
+
+  max-width: 162px;
+}
+
+
+.variable-header-cell input {
+  width: 100%;
+
+  height: 100%;
+
+  display: block;
+
+  padding:
+    0
+    7px;
+
+  border: 0;
+
+  outline: 0;
+
+  background: transparent;
+
+  color: #090909;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 16px;
+
+  font-weight: 700;
+
+  line-height: 31px;
+
+  text-align: right;
+}
+
+
+.variable-header-cell input:focus {
+  background: #f5ffff;
+
+  box-shadow:
+    inset
+    0
+    0
+    0
+    2px
+    #008d90;
+}
+
+
+/* ==========================================================
+   CASE NUMBER
+   ========================================================== */
+
+.case-number-cell {
+  position: sticky;
+
+  left: 0;
+
+  z-index: 7;
+
+  width: 64px;
+
+  min-width: 64px;
+
+  max-width: 64px;
+
+  background: #ffffff !important;
+
+  color: #666666 !important;
+
+  font-size: 14px;
+
+  font-weight: 400;
+
+  text-align: center;
+}
+
+
+.case-number-cell > span {
+  display: inline-block;
+
+  min-width: 22px;
+}
+
+
+/* ==========================================================
+   DELETE CASE
+   ========================================================== */
+
+.delete-case-button {
+  width: 18px;
+
+  height: 18px;
+
+  display: none;
+
+  align-items: center;
+
+  justify-content: center;
+
+  margin-left: 2px;
+
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #a33737;
+
+  cursor: pointer;
+}
+
+
+.case-number-cell:hover
+.delete-case-button {
+  display: inline-flex;
+}
+
+
+/* ==========================================================
+   DATA CELLS
+   ========================================================== */
+
+.data-cell {
+  width: 162px;
+
+  min-width: 162px;
+
+  max-width: 162px;
+
+  background: #ffffff;
+}
+
+
+.data-cell input {
+  width: 100%;
+
+  height: 30px;
+
+  display: block;
+
+  padding:
+    0
+    7px;
+
+  border: 0;
+
+  outline: 0;
+
+  background: transparent;
+
+  color: #050505;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 16px;
+
+  font-weight: 400;
+
+  line-height: 30px;
+
+  text-align: right;
+}
+
+
+.data-cell input:focus {
+  position: relative;
+
+  z-index: 4;
+
+  background: #f7ffff;
+
+  box-shadow:
+    inset
+    0
+    0
+    0
+    2px
+    #008c8f;
+}
+
+
+/* ==========================================================
+   PLACEHOLDERS
+   ========================================================== */
+
+.variable-header-cell input::placeholder,
+.data-cell input::placeholder {
+  color: transparent;
+}
+
+
+/* ==========================================================
+   ROW HOVER
+   ========================================================== */
+
+.ssas-spreadsheet tbody tr:hover td {
+  background: #fcfcfc;
+}
+
+
+.ssas-spreadsheet tbody tr:hover
+.data-cell input {
+  background: #fcfcfc;
+}
+
+
+/* ==========================================================
+   FOOTER
+   ========================================================== */
+
+.ssas-sheet-footer {
+  min-height: 35px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding:
+    7px
+    2px
+    0;
+
+  color: #777777;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 11px;
+}
+
+
+/* ==========================================================
+   TABLET
+   ========================================================== */
+
+@media (
+  max-width: 1000px
+) {
+
+  .ssas-sheet-page {
+    padding:
+      22px
+      18px;
   }
 
-  .transfer-export-buttons {
+
+  .ssas-sheet-toolbar {
+    align-items: flex-start;
+
     flex-direction: column;
+
+    gap: 8px;
+
+    padding-bottom: 8px;
   }
 
-  .transfer-primary-button {
+
+  .ssas-sheet-toolbar-left {
     width: 100%;
+
+    overflow-x: auto;
+
+    gap: 18px;
+  }
+
+
+  .ssas-sheet-toolbar-right {
+    align-self: flex-end;
+
+    font-size: 12px;
+  }
+
+
+  .ssas-sheet-tab {
+    font-size: 15px;
+  }
+}
+
+
+/* ==========================================================
+   MOBILE
+   ========================================================== */
+
+@media (
+  max-width: 620px
+) {
+
+  .ssas-sheet-page {
+    padding:
+      16px
+      10px;
+  }
+
+
+  .ssas-spreadsheet-frame {
+    min-height: 445px;
+  }
+
+
+  .ssas-sheet-toolbar-left {
+    gap: 14px;
+  }
+
+
+  .ssas-sheet-tab {
+    font-size: 13px;
+  }
+
+
+  .measurement-cell,
+  .variable-header-cell,
+  .data-cell {
+    width: 145px;
+
+    min-width: 145px;
+
+    max-width: 145px;
+  }
+
+
+  .ssas-transfer-popover {
+    width: 290px;
   }
 }

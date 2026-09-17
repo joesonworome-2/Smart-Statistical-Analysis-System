@@ -7,6 +7,9 @@ from app.database import (
 from app.routes.datasets import (
     router as dataset_router,
 )
+from app.routes.editor import (
+    router as editor_router,
+)
 from app.routes.preparation import (
     router as preparation_router,
 )
@@ -14,7 +17,7 @@ from app.routes.preparation import (
 
 app = FastAPI(
     title=settings.project_name,
-    version="1.1.0",
+    version="1.2.0",
 )
 
 
@@ -28,6 +31,11 @@ app.include_router(
     preparation_router
 )
 
+# Spreadsheet editing and guided workflow APIs
+app.include_router(
+    editor_router
+)
+
 
 @app.get("/")
 def root():
@@ -39,6 +47,12 @@ def root():
             "running",
 
         "data_preparation":
+            True,
+
+        "spreadsheet_autosave":
+            True,
+
+        "guided_workflow":
             True,
     }
 
